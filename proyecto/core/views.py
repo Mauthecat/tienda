@@ -1,13 +1,32 @@
-from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from django.http import JsonResponse
 from .models import Product
-from .serializers import ProductSerializer
 
-@api_view(['GET'])
+# --- Función 1: Bienvenida (La que te faltaba) ---
+def api_home(request):
+    return JsonResponse({"mensaje": "¡El Backend está vivo!"})
+
+# --- Función 2: Productos (La que arreglamos antes) ---
 def get_products(request):
-    """
-    Esta función devuelve la lista de todos los productos activos en formato JSON.
-    """
-    products = Product.objects.filter(is_active=True)
-    serializer = ProductSerializer(products, many=True)
-    return Response(serializer.data)
+    # Obtenemos solo los productos activos
+    products_queryset = Product.objects.filter(is_active=True)
+    
+    products_list = []
+    
+    for product in products_queryset:
+        # Lógica para sacar la imagen principal
+        main_image_obj = product.images.filter(is_main=True).first()
+        if not main_image_obj:
+            main_image_obj = product.images.first()
+            
+        image_url = main_image_obj.image.url if main_image_obj else None
+
+        products_list.append({
+            'id': product.id,
+            'name': product.name,
+            'price': float(product.price),
+            'category__name': product.category.name if product.category else "Sin categoría",
+            'main_image': image_url,
+            'description': product.description
+        })
+
+    return JsonResponse(products_list, safe=False)
