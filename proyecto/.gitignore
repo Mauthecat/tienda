@@ -1,0 +1,12 @@
+# Seguridad (Nunca subir esto)
+.env
+.env.txt
+
+# Archivos de sistema y Python
+__pycache__/
+*.py[cod]
+db.sqlite3
+venv/
+.vscode/
+staticfiles/
+media/
