@@ -1,0 +1,10 @@
+Django==6.0.2
+gunicorn
+dj-database-url
+psycopg2-binary
+whitenoise
+cloudinary
+django-cloudinary-storage
+python-dotenv
+djangorestframework
+django-cors-headers
