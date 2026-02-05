@@ -15,8 +15,9 @@ function App() {
   const [loading, setLoading] = useState(true);
 
   // URL de tu Backend (IMPORTANTE: Si subes a producción, esto cambiará)
-  const BASE_URL = 'http://127.0.0.1:8000';
-
+  const BASE_URL = import.meta.env.MODE === 'production'
+    ? 'https://tienda-backend-fn64.onrender.com'
+    : 'http://127.0.0.1:8000';
   // 2. EFECTO: Se ejecuta una vez cuando carga la página
   useEffect(() => {
     const fetchProducts = async () => {
@@ -59,43 +60,35 @@ function App() {
 
   return (
     <div className="min-h-screen bg-[#b3f3f5] flex flex-col">
-
       <Header />
 
-      <HeroCarousel images={heroImages} />
-
-      {/* Carrusel de Novedades (Usamos los datos reales) */}
-      <FullWidthCarousel
-        title="Novedades de la Semana"
-        products={newArrivals.length > 0 ? newArrivals : products}
-      />
-
-      <main className="pb-10 flex-grow">
-
-        {/* Sección Aritos */}
-        <CategorySection
-          title="Nuestros Aritos"
-          buttonText="Ver Productos"
-          bannerImage={logoImg}
-          products={arosProducts.length > 0 ? arosProducts : products} // Fallback a todos si no hay filtro
-          isReversed={false}
-        />
-
-        <div className="w-full h-px bg-cyan-900/10 max-w-7xl mx-auto my-8"></div>
-
-        {/* Sección Cortadores */}
-        <CategorySection
-          title="Cortadores Exclusivos"
-          buttonText="Ver Productos"
-          bannerImage={logoImg}
-          products={cortadoresProducts}
-          isReversed={true}
-        />
-
-      </main>
+      {loading ? (
+        <div className="flex-grow flex items-center justify-center">
+          Cargando productos...
+        </div>
+      ) : (
+        <>
+          <HeroCarousel images={heroImages} />
+          <FullWidthCarousel
+            title="Novedades de la Semana"
+            products={newArrivals.length > 0 ? newArrivals : products}
+          />
+          <main className="pb-10 flex-grow">
+            <CategorySection
+              title="Nuestros Aritos"
+              products={arosProducts.length > 0 ? arosProducts : products}
+              isReversed={false}
+            />
+            <CategorySection
+              title="Cortadores Exclusivos"
+              products={cortadoresProducts}
+              isReversed={true}
+            />
+          </main>
+        </>
+      )}
 
       <InstagramFeed />
-
       <Footer />
     </div>
   )
