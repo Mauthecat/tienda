@@ -6,6 +6,7 @@ import HeroCarousel from './components/heroCarousel';
 import CategorySection from './components/categorySection';
 import FullWidthCarousel from './components/fullWidthCarousel';
 import InstagramFeed from './components/instagramFeed';
+import Footer from './components/footer';
 import logoImg from './assets/logo.jpeg';
 
 function App() {
@@ -21,7 +22,7 @@ function App() {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/api/products/`);
-        
+
         // Transformamos los datos para que encajen con tu diseño
         const formattedData = response.data.map(item => ({
           ...item,
@@ -46,7 +47,7 @@ function App() {
   // (Asegúrate que en el Admin las categorías se llamen "Aros" y "Cortadores" o ajusta aquí)
   const arosProducts = products.filter(p => p.category?.name === 'Aros');
   const cortadoresProducts = products.filter(p => p.category?.name === 'Cortadores');
-  
+
   // Para novedades, simplemente tomamos los últimos 5 agregados (el array viene ordenado o usamos slice)
   const newArrivals = products.slice(-5);
 
@@ -57,24 +58,24 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-[#b3f3f5]">
-      
+    <div className="min-h-screen bg-[#b3f3f5] flex flex-col">
+
       <Header />
 
       <HeroCarousel images={heroImages} />
 
       {/* Carrusel de Novedades (Usamos los datos reales) */}
-      <FullWidthCarousel 
-        title="Novedades de la Semana" 
-        products={newArrivals.length > 0 ? newArrivals : products} 
+      <FullWidthCarousel
+        title="Novedades de la Semana"
+        products={newArrivals.length > 0 ? newArrivals : products}
       />
 
-      <main className="pb-10">
-        
+      <main className="pb-10 flex-grow">
+
         {/* Sección Aritos */}
-        <CategorySection 
+        <CategorySection
           title="Nuestros Aritos"
-          buttonText="Ver Aritos"
+          buttonText="Ver Productos"
           bannerImage={logoImg}
           products={arosProducts.length > 0 ? arosProducts : products} // Fallback a todos si no hay filtro
           isReversed={false}
@@ -83,9 +84,9 @@ function App() {
         <div className="w-full h-px bg-cyan-900/10 max-w-7xl mx-auto my-8"></div>
 
         {/* Sección Cortadores */}
-        <CategorySection 
+        <CategorySection
           title="Cortadores Exclusivos"
-          buttonText="Ver Todos"
+          buttonText="Ver Productos"
           bannerImage={logoImg}
           products={cortadoresProducts}
           isReversed={true}
@@ -94,6 +95,8 @@ function App() {
       </main>
 
       <InstagramFeed />
+
+      <Footer />
     </div>
   )
 }
