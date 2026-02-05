@@ -8,3 +8,4 @@ django-cloudinary-storage
 python-dotenv
 djangorestframework
 django-cors-headers
+Pillow
