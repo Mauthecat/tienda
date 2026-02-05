@@ -31,7 +31,7 @@ print(f"DATABASE_URL encontrada: {'SI' if os.environ.get('DATABASE_URL') else 'N
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-*1f6ffep7$s9-*$zqy4u5_7bywn3lm!)(k-go1_^iqwc!&7h^o')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
@@ -149,7 +149,6 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
-
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
 ]
