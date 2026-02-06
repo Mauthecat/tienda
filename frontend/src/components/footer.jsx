@@ -55,11 +55,11 @@ const Footer = () => {
                         <ul className="space-y-3 text-sm text-gray-600">
                             <li className="flex items-start gap-3">
                                 <MapPin size={18} className="text-[#e5c2bc] flex-shrink-0" />
-                                <span>Santiago, Chile (Envíos a todo el país)</span>
+                                <span>Rancagua, Chile (Envíos a todo el país)</span>
                             </li>
                             <li className="flex items-center gap-3">
                                 <Mail size={18} className="text-[#e5c2bc] flex-shrink-0" />
-                                <a href="mailto:hola@policromica.cl" className="hover:text-indigo-600">hola@policromica.cl</a>
+                                <a href="mailto:hola@policromica.cl" className="hover:text-indigo-600">mona@policromica.cl</a>
                             </li>
                             {/* Opcional: Teléfono si aplica */}
                             {/* <li className="flex items-center gap-3">
@@ -78,9 +78,7 @@ const Footer = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
                     <p>&copy; {new Date().getFullYear()} Policromica. Todos los derechos reservados.</p>
                     <div className="flex items-center gap-1 mt-2 md:mt-0">
-                        <span>Hecho con</span>
-                        <Heart size={12} className="text-red-400 fill-red-400" />
-                        <span>por Cesar</span>
+                        <span>Hecho por Cesar</span>
                     </div>
                 </div>
             </div>
