@@ -37,6 +37,7 @@ ALLOWED_HOSTS = ['*']
 
 CSRF_TRUSTED_ORIGINS = [
     'https://tienda-backend-fn64.onrender.com' 
+    'https://policromica.vercel.app',
 ]
 # Application definition
 
@@ -151,6 +152,7 @@ STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
+    "https://policromica.vercel.app",
 ]
 CLOUDINARY_STORAGE = {
     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME'),
