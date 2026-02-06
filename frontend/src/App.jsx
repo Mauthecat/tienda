@@ -50,7 +50,7 @@ function App() {
   const heroImages = [logoImg, logoImg, logoImg];
 
   return (
-    <div className="min-h-screen bg-[#b3f3f5] flex flex-col">
+    <div className="min-h-screen bg-[#b3f3f5] flex flex-col w-full overflow-x-hidden">
       <Header />
 
       <HeroCarousel images={heroImages} />
