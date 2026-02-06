@@ -149,7 +149,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedStaticFilesStorage'
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "https://policromica.vercel.app",
@@ -166,7 +166,7 @@ STORAGES = {
     },
     # Gestión de archivos ESTÁTICOS (CSS/JS admin) -> A Whitenoise
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
+        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
     },
 }
 #DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
