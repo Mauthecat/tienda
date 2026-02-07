@@ -38,7 +38,7 @@ const InstagramFeed = () => {
     ];
 
     return (
-        <section className="w-full bg-[#e5c2bc] border-t border-cyan-100 mt-12 mb-12">
+        <section className="w-full bg-[#b3f3f5] border-t border-cyan-100 mt-12 mb-12">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
                 {/* Tarjeta Tipo Widget */}
@@ -52,7 +52,7 @@ const InstagramFeed = () => {
                             </div>
                             <div className="text-center md:text-left">
                                 <h3 className="font-bold text-xl text-gray-800">@poli_cromica</h3>
-                                <p className="text-gray-500 text-sm">¡Síguenos para novedades Semanales !</p>
+                                <p className="text-gray-500 text-sm">¡Síguenos para novedades Semanales!</p>
                             </div>
                         </div>
 

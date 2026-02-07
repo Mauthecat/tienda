@@ -78,7 +78,7 @@ const Footer = () => {
                 <div className="flex flex-col md:flex-row justify-between items-center text-xs text-gray-400">
                     <p>&copy; {new Date().getFullYear()} Policromica. Todos los derechos reservados.</p>
                     <div className="flex items-center gap-1 mt-2 md:mt-0">
-                        <span>Hecho por Cesar</span>
+                        <span>Desarrollado por Xtek Spa</span>
                     </div>
                 </div>
             </div>
