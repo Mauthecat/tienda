@@ -188,7 +188,7 @@ const ProductPage = ({ title, products, bannerImage }) => {
                                         onClick={() => setCurrentPage(number)}
                                         className={`w-10 h-10 flex items-center justify-center border ${currentPage === number
                                                 ? 'bg-gray-900 text-white border-gray-900'
-                                                : 'bg-white text-gray-600 border-gray-300 hover:border-gray-900'
+                                                : 'bg-[#b3f3f5] text-gray-600 border-gray-300 hover:border-gray-900'
                                             } transition-colors`}
                                     >
                                         {number}
