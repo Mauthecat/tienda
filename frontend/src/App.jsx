@@ -57,7 +57,7 @@ function App() {
               <CategorySection
                 title="Nuestros Aritos"
                 buttonText="Ver Aritos"
-                bannerImage={logoImg}
+                bannerImage={arosBanner}
                 products={arosProducts}
                 isReversed={false}
               />
@@ -65,7 +65,7 @@ function App() {
               <CategorySection
                 title="Cortadores Exclusivos"
                 buttonText="Ver Todos"
-                bannerImage={logoImg}
+                bannerImage={cortadoresBanner}
                 products={cortadoresProducts}
                 isReversed={true}
               />
