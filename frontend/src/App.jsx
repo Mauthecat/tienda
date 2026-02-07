@@ -8,7 +8,7 @@ import CategorySection from './components/categorySection';
 import FullWidthCarousel from './components/fullWidthCarousel';
 import InstagramFeed from './components/instagramFeed';
 import Footer from './components/footer';
-import ProductPage from './components/ProductPage'; // Nuevo componente
+import ProductPage from './components/ProductPage'; 
 import logoImg from './assets/logo.jpeg';
 
 function App() {
@@ -37,49 +37,42 @@ function App() {
     fetchProducts();
   }, []);
 
-  // Filtramos datos para pasarlos a las páginas
   const arosProducts = products.filter(p => p.category__name === 'Aros');
   const cortadoresProducts = products.filter(p => p.category__name === 'Cortadores');
   const newArrivals = products.slice(-5);
   const heroImages = [logoImg, logoImg, logoImg];
 
-  // Componente interno para la PORTADA (Lo que ya tenías)
-  const HomePage = () => (
-    <>
-      <HeroCarousel images={heroImages} />
-      <FullWidthCarousel title="Novedades de la Semana" products={newArrivals} />
-      <main className="pb-10 flex-grow">
-        <CategorySection
-          title="Nuestros Aritos"
-          buttonText="Ver Aritos"
-          bannerImage={logoImg}
-          products={arosProducts}
-          isReversed={false}
-        />
-        <div className="w-full h-px bg-cyan-900/10 max-w-7xl mx-auto my-8"></div>
-        <CategorySection
-          title="Cortadores Exclusivos"
-          buttonText="Ver Todos"
-          bannerImage={logoImg}
-          products={cortadoresProducts}
-          isReversed={true}
-        />
-      </main>
-      <InstagramFeed />
-    </>
-  );
-
   return (
-
     <div className="min-h-screen bg-[#b3f3f5] flex flex-col w-full overflow-x-hidden">
-      {/* El Header siempre se muestra */}
       <Header />
 
       <Routes>
-        {/* RUTA 1: Inicio */}
-        <Route path="/" element={<HomePage />} />
+        {/* CORRECCIÓN: Definimos el JSX directamente en element para evitar re-renderizados destructivos */}
+        <Route path="/" element={
+          <>
+            <HeroCarousel images={heroImages} />
+            <FullWidthCarousel title="Novedades de la Semana" products={newArrivals} />
+            <main className="pb-10 flex-grow">
+              <CategorySection
+                title="Nuestros Aritos"
+                buttonText="Ver Aritos"
+                bannerImage={logoImg}
+                products={arosProducts}
+                isReversed={false}
+              />
+              <div className="w-full h-px bg-cyan-900/10 max-w-7xl mx-auto my-8"></div>
+              <CategorySection
+                title="Cortadores Exclusivos"
+                buttonText="Ver Todos"
+                bannerImage={logoImg}
+                products={cortadoresProducts}
+                isReversed={true}
+              />
+            </main>
+            <InstagramFeed />
+          </>
+        } />
 
-        {/* RUTA 2: Catálogo Aros */}
         <Route
           path="/aros"
           element={
@@ -91,7 +84,6 @@ function App() {
           }
         />
 
-        {/* RUTA 3: Catálogo Cortadores */}
         <Route
           path="/cortadores"
           element={
@@ -104,7 +96,6 @@ function App() {
         />
       </Routes>
 
-      {/* El Footer siempre se muestra */}
       <Footer />
     </div>
   )
