@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios'; 
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'; // IMPORTANTE
+import { Routes, Route } from 'react-router-dom';
 
 import Header from './components/header';
 import HeroCarousel from './components/heroCarousel';
