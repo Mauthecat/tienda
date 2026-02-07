@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios'; 
+import axios from 'axios';
 import { Routes, Route } from 'react-router-dom';
 
 import Header from './components/header';
@@ -13,7 +13,7 @@ import logoImg from './assets/logo.jpeg';
 
 function App() {
   const [products, setProducts] = useState([]);
-  
+
   const BASE_URL = import.meta.env.MODE === 'production'
     ? 'https://tienda-backend-fn64.onrender.com'
     : 'http://127.0.0.1:8000';
@@ -25,8 +25,8 @@ function App() {
         const formattedData = response.data.map(item => ({
           ...item,
           price: new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(item.price),
-          image: item.main_image 
-            ? (item.main_image.startsWith('http') ? item.main_image : `${BASE_URL}${item.main_image}`) 
+          image: item.main_image
+            ? (item.main_image.startsWith('http') ? item.main_image : `${BASE_URL}${item.main_image}`)
             : logoImg
         }));
         setProducts(formattedData);
@@ -49,7 +49,7 @@ function App() {
       <HeroCarousel images={heroImages} />
       <FullWidthCarousel title="Novedades de la Semana" products={newArrivals} />
       <main className="pb-10 flex-grow">
-        <CategorySection 
+        <CategorySection
           title="Nuestros Aritos"
           buttonText="Ver Aritos"
           bannerImage={logoImg}
@@ -57,7 +57,7 @@ function App() {
           isReversed={false}
         />
         <div className="w-full h-px bg-cyan-900/10 max-w-7xl mx-auto my-8"></div>
-        <CategorySection 
+        <CategorySection
           title="Cortadores Exclusivos"
           buttonText="Ver Todos"
           bannerImage={logoImg}
@@ -70,44 +70,43 @@ function App() {
   );
 
   return (
-    <Router>
-      <div className="min-h-screen bg-[#b3f3f5] flex flex-col w-full overflow-x-hidden">
-        {/* El Header siempre se muestra */}
-        <Header />
 
-        <Routes>
-          {/* RUTA 1: Inicio */}
-          <Route path="/" element={<HomePage />} />
+    <div className="min-h-screen bg-[#b3f3f5] flex flex-col w-full overflow-x-hidden">
+      {/* El Header siempre se muestra */}
+      <Header />
 
-          {/* RUTA 2: Catálogo Aros */}
-          <Route 
-            path="/aros" 
-            element={
-              <ProductPage 
-                title="Colección de Aros" 
-                products={arosProducts} 
-                bannerImage={logoImg}
-              />
-            } 
-          />
+      <Routes>
+        {/* RUTA 1: Inicio */}
+        <Route path="/" element={<HomePage />} />
 
-          {/* RUTA 3: Catálogo Cortadores */}
-          <Route 
-            path="/cortadores" 
-            element={
-              <ProductPage 
-                title="Cortadores & Herramientas" 
-                products={cortadoresProducts} 
-                bannerImage={logoImg}
-              />
-            } 
-          />
-        </Routes>
+        {/* RUTA 2: Catálogo Aros */}
+        <Route
+          path="/aros"
+          element={
+            <ProductPage
+              title="Colección de Aros"
+              products={arosProducts}
+              bannerImage={logoImg}
+            />
+          }
+        />
 
-        {/* El Footer siempre se muestra */}
-        <Footer />
-      </div>
-    </Router>
+        {/* RUTA 3: Catálogo Cortadores */}
+        <Route
+          path="/cortadores"
+          element={
+            <ProductPage
+              title="Cortadores & Herramientas"
+              products={cortadoresProducts}
+              bannerImage={logoImg}
+            />
+          }
+        />
+      </Routes>
+
+      {/* El Footer siempre se muestra */}
+      <Footer />
+    </div>
   )
 }
 
