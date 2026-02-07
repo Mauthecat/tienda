@@ -5,10 +5,7 @@ import './index.css'
 import { BrowserRouter } from 'react-router-dom' // <--- IMPORTAR AQUÍ
 
 ReactDOM.createRoot(document.getElementById('root')).render(
-  <React.StrictMode>
-    {/* Envolvemos la App con el Router aquí */}
-    <BrowserRouter>
-      <App />
-    </BrowserRouter>
-  </React.StrictMode>,
+  <BrowserRouter>
+    <App />
+  </BrowserRouter>
 )
