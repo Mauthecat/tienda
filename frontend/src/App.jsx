@@ -89,7 +89,7 @@ function App() {
           path="/cortadores"
           element={
             <ProductPage
-              title="Cortadores & Herramientas"
+              title="Cortadores"
               products={cortadoresProducts}
               bannerImage={cortadoresBanner}
             />
