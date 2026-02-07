@@ -54,7 +54,7 @@ const ProductPage = ({ title, products, bannerImage }) => {
     }, [currentPage]);
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-[#b3f3f5]">
 
             {/* === BANNER SUPERIOR === */}
             <div className="relative h-48 md:h-64 bg-gray-900 overflow-hidden">
