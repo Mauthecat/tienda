@@ -38,7 +38,7 @@ const InstagramFeed = () => {
     ];
 
     return (
-        <section className="w-full bg-white border-t border-cyan-100 mt-12 mb-12">
+        <section className="w-full bg-[#e5c2bc] border-t border-cyan-100 mt-12 mb-12">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
                 {/* Tarjeta Tipo Widget */}
