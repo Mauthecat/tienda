@@ -5,9 +5,9 @@ import logoImg from '../assets/logo.jpeg';
 // Para que esto se vea profesional, descarga las 3 fotos de tu Instagram
 // y guárdalas en src/assets/ (ej: insta1.jpg, insta2.jpg, insta3.jpg)
 // O usa las URLs de Cloudinary si ya las subiste ahí.
-import insta1 from '../assets/logo.jpeg'; // Reemplazar con tu foto real 1
-import insta2 from '../assets/logo.jpeg'; // Reemplazar con tu foto real 2
-import insta3 from '../assets/logo.jpeg'; // Reemplazar con tu foto real 3
+import insta1 from '../assets/ins1.png'; // Reemplazar con tu foto real 1
+import insta2 from '../assets/ins2.png'; // Reemplazar con tu foto real 2
+import insta3 from '../assets/ins3.png'; // Reemplazar con tu foto real 3
 
 const InstagramFeed = () => {
 
@@ -20,20 +20,20 @@ const InstagramFeed = () => {
         {
             id: 1,
             img: insta1,
-            link: "https://www.instagram.com/p/LINK_DEL_POST_1/",
-            caption: "Aros increíbles de la nueva colección"
+            link: "https://www.instagram.com/p/DUMizOKEd4-/",
+            caption: "Pack de cortadores Girasol"
         },
         {
             id: 2,
             img: insta2,
-            link: "https://www.instagram.com/p/LINK_DEL_POST_2/",
-            caption: "Proceso de creación a mano"
+            link: "https://www.instagram.com/p/DT-rWOhDv0c/",
+            caption: "Taller de arcilla polimérica"
         },
         {
             id: 3,
             img: insta3,
-            link: "https://www.instagram.com/p/LINK_DEL_POST_3/",
-            caption: "Nuestros clientes felices"
+            link: "https://www.instagram.com/p/DT8lJT_kQEG/",
+            caption: "Cortador Imperio"
         },
     ];
 
