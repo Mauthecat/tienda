@@ -10,7 +10,8 @@ import InstagramFeed from './components/instagramFeed';
 import Footer from './components/footer';
 import ProductPage from './components/ProductPage'; 
 import logoImg from './assets/logo.jpeg';
-
+import arosBanner from './assets/portada_aros.png';
+import cortadoresBanner from './assets/portada_cortadores.jpeg';
 function App() {
   const [products, setProducts] = useState([]);
 
@@ -79,7 +80,7 @@ function App() {
             <ProductPage
               title="Colección de Aros"
               products={arosProducts}
-              bannerImage={logoImg}
+              bannerImage={arosBanner}
             />
           }
         />
@@ -90,7 +91,7 @@ function App() {
             <ProductPage
               title="Cortadores & Herramientas"
               products={cortadoresProducts}
-              bannerImage={logoImg}
+              bannerImage={arosBanner}
             />
           }
         />
