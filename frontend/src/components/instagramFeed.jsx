@@ -42,7 +42,7 @@ const InstagramFeed = () => {
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 
                 {/* Tarjeta Tipo Widget */}
-                <div className="bg-[#feecd4]/30 rounded-3xl p-6 md:p-8 border border-[#feecd4]">
+                <div className="bg-[#feecd4] rounded-3xl p-6 md:p-8 border border-[#feecd4]">
 
                     {/* Cabecera del Widget */}
                     <div className="flex flex-col md:flex-row items-center justify-between mb-8 gap-4">
