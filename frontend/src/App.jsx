@@ -91,7 +91,7 @@ function App() {
             <ProductPage
               title="Cortadores & Herramientas"
               products={cortadoresProducts}
-              bannerImage={arosBanner}
+              bannerImage={cortadoresBanner}
             />
           }
         />
