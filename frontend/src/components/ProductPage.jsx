@@ -93,7 +93,7 @@ const ProductPage = ({ title, products, bannerImage }) => {
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
-                            className="border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:border-cyan-400 bg-white"
+                            className="border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:border-cyan-400 bg-[#feecd4]"
                         >
                             <option value="relevance">Relevancia</option>
                             <option value="price-asc">Precio: Menor a Mayor</option>
@@ -146,7 +146,7 @@ const ProductPage = ({ title, products, bannerImage }) => {
                         {/* Grid: 2 columnas móvil, 3 columnas desktop */}
                         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                             {currentProducts.map((product) => (
-                                <div key={product.id} className="group flex flex-col bg-white border border-gray-100 hover:shadow-lg transition-all duration-300">
+                                <div key={product.id} className="group flex flex-col bg-[#feecd4] border border-gray-100 hover:shadow-lg transition-all duration-300">
 
                                     {/* Imagen */}
                                     <div className="relative aspect-[4/5] overflow-hidden bg-gray-100">
