@@ -1,15 +1,14 @@
 import { useState } from 'react';
 import { Menu, X, ShoppingCart, Heart, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext'; // IMPORTAMOS EL HOOK DEL CARRITO
+import { useCart } from '../context/CartContext'; 
 import logoImg from '../assets/logo.jpeg';
-const { totalItems, setIsCartOpen } = useCart();
 
 const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
-    // OBTENEMOS EL TOTAL DE ÍTEMS DEL CEREBRO DEL CARRITO
-    const { totalItems } = useCart();
+    // CORRECCIÓN: Aquí es donde debe ir el hook, ¡adentro de la función!
+    const { totalItems, setIsCartOpen } = useCart();
 
     const navigation = [
         { name: 'Inicio', href: '/' },
@@ -54,7 +53,7 @@ const Header = () => {
                             <Heart size={24} />
                         </button>
 
-                        {/* BOTÓN DEL CARRITO ACTUALIZADO */}
+                        {/* BOTÓN DEL CARRITO */}
                         <button
                             onClick={() => setIsCartOpen(true)}
                             className="relative p-2 text-gray-800 hover:text-indigo-600"
