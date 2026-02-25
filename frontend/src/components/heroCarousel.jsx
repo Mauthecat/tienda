@@ -1,9 +1,14 @@
 import { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom'; // Importamos Link para la navegación
+import { Link } from 'react-router-dom';
 
 const HeroCarousel = ({ slides }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  // 🛡️ ESCUDO ANTI-PANTALLA BLANCA: Si no hay slides, mostramos un fondo gris cargando
+  if (!slides || slides.length === 0) {
+      return <div className="w-full h-[250px] md:h-[450px] bg-gray-200 animate-pulse"></div>;
+  }
 
   const prevSlide = () => {
     const isFirstSlide = currentIndex === 0;
@@ -17,41 +22,38 @@ const HeroCarousel = ({ slides }) => {
     setCurrentIndex(newIndex);
   };
 
-  // Opcional: Autoplay para que el carrusel se mueva solo cada 5 segundos
+  // Autoplay para que gire solo cada 5 segundos
   useEffect(() => {
     const timer = setInterval(() => {
       nextSlide();
     }, 5000);
     return () => clearInterval(timer);
-  }, [currentIndex]);
+  }, [currentIndex, slides.length]);
+
+  const currentSlide = slides[currentIndex] || slides[0];
 
   return (
-    // Altura ajustable: 250px en móvil, 450px en escritorio
     <div className="w-full h-[250px] md:h-[450px] relative group shadow-lg">
       
-      {/* Imagen de Fondo clickeable con transición suave */}
-      <Link to={slides[currentIndex].link} className="block w-full h-full relative overflow-hidden">
+      {/* Imagen de Fondo clickeable */}
+      <Link to={currentSlide.link} className="block w-full h-full relative overflow-hidden">
         <div 
-          style={{ backgroundImage: `url(${slides[currentIndex].image})` }} 
+          style={{ backgroundImage: `url(${currentSlide.image})` }} 
           className="w-full h-full bg-center bg-cover duration-700 ease-in-out transition-all hover:scale-105"
         >
-          {/* Capa oscura sutil para que no brille tanto */}
           <div className="w-full h-full bg-black/10 hover:bg-black/20 transition-colors"></div>
         </div>
       </Link>
 
-      {/* Flecha Izquierda */}
-      <div className="hidden group-hover:block absolute top-[50%] -translate-y-1/2 left-5 text-2xl rounded-full p-2 bg-white/30 hover:bg-white/50 text-white cursor-pointer transition backdrop-blur-sm pointer-events-auto">
+      <div className="hidden group-hover:block absolute top-[50%] -translate-y-1/2 left-5 text-2xl rounded-full p-2 bg-white/30 hover:bg-white/50 text-white cursor-pointer transition backdrop-blur-sm pointer-events-auto z-10">
         <ChevronLeft onClick={prevSlide} size={30} />
       </div>
 
-      {/* Flecha Derecha */}
-      <div className="hidden group-hover:block absolute top-[50%] -translate-y-1/2 right-5 text-2xl rounded-full p-2 bg-white/30 hover:bg-white/50 text-white cursor-pointer transition backdrop-blur-sm pointer-events-auto">
+      <div className="hidden group-hover:block absolute top-[50%] -translate-y-1/2 right-5 text-2xl rounded-full p-2 bg-white/30 hover:bg-white/50 text-white cursor-pointer transition backdrop-blur-sm pointer-events-auto z-10">
         <ChevronRight onClick={nextSlide} size={30} />
       </div>
 
-      {/* Puntos (Dots) abajo */}
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2">
+      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
         {slides.map((_, slideIndex) => (
           <div
             key={slideIndex}
