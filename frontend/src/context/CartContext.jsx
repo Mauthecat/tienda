@@ -4,7 +4,6 @@ export const CartContext = createContext();
 export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
-    // Estado para controlar si el carrito lateral está abierto o cerrado
     const [isCartOpen, setIsCartOpen] = useState(false);
     
     const [cart, setCart] = useState(() => {
@@ -26,8 +25,21 @@ export const CartProvider = ({ children }) => {
             }
             return [...prevCart, { ...product, quantity }];
         });
-        // ¡Magia! Al añadir un producto, abrimos el carrito automáticamente
         setIsCartOpen(true); 
+    };
+
+    // NUEVO: Función para sumar o restar cantidad
+    const updateQuantity = (productId, amount) => {
+        setCart(prevCart => {
+            const updatedCart = prevCart.map(item => {
+                if (item.id === productId) {
+                    return { ...item, quantity: item.quantity + amount };
+                }
+                return item;
+            });
+            // Filtramos para eliminar los que lleguen a 0
+            return updatedCart.filter(item => item.quantity > 0);
+        });
     };
 
     const removeFromCart = (productId) => {
@@ -36,14 +48,22 @@ export const CartProvider = ({ children }) => {
 
     const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
     
-    // Calculamos el total en dinero (limpiamos el formato $12.990 -> 12990)
     const totalPrice = cart.reduce((total, item) => {
         const priceNum = parseInt(item.price.replace(/\D/g, '')) || 0;
         return total + (priceNum * item.quantity);
     }, 0);
 
     return (
-        <CartContext.Provider value={{ cart, addToCart, removeFromCart, totalItems, totalPrice, isCartOpen, setIsCartOpen }}>
+        <CartContext.Provider value={{ 
+            cart, 
+            addToCart, 
+            removeFromCart, 
+            updateQuantity, // Pasamos la nueva función aquí
+            totalItems, 
+            totalPrice, 
+            isCartOpen, 
+            setIsCartOpen 
+        }}>
             {children}
         </CartContext.Provider>
     );
