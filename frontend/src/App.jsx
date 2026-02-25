@@ -8,12 +8,10 @@ import CategorySection from './components/categorySection';
 import FullWidthCarousel from './components/fullWidthCarousel';
 import InstagramFeed from './components/instagramFeed';
 import Footer from './components/footer';
-import ProductPage from './components/ProductPage';
+import ProductPage from './components/ProductPage'; 
 import logoImg from './assets/logo.jpeg';
 import arosBanner from './assets/portada_aros.png';
 import cortadoresBanner from './assets/portada_cortadores.jpeg';
-import ProductDetail from './components/ProductDetail'
-
 function App() {
   const [products, setProducts] = useState([]);
 
@@ -25,22 +23,13 @@ function App() {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/api/products/`);
-
         const formattedData = response.data.map(item => ({
           ...item,
           price: new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(item.price),
-
-          // Formateamos la imagen principal
           image: item.main_image
             ? (item.main_image.startsWith('http') ? item.main_image : `${BASE_URL}${item.main_image}`)
-            : logoImg,
-
-          // NUEVO: Formateamos el array con TODAS las imágenes
-          images: item.all_images && item.all_images.length > 0
-            ? item.all_images.map(img => img.startsWith('http') ? img : `${BASE_URL}${img}`)
-            : [logoImg] // Fallback: si no tiene fotos, metemos el logo en un array
+            : logoImg
         }));
-
         setProducts(formattedData);
       } catch (error) {
         console.error("Error conectando con Django:", error);
@@ -53,11 +42,7 @@ function App() {
   const cortadoresProducts = products.filter(p => p.category__name === 'Cortadores');
   const newArrivals = products.slice(-5);
   const heroImages = [logoImg, logoImg, logoImg];
-  const heroSlides = [
-    { image: logoImg, link: '/', title: 'Destacados' },           // Slide 1
-    { image: arosBanner, link: '/aros', title: 'Aros' },          // Slide 2
-    { image: cortadoresBanner, link: '/cortadores', title: 'Cortadores' } // Slide 3
-  ];
+
   return (
     <div className="min-h-screen bg-[#b3f3f5] flex flex-col w-full overflow-x-hidden">
       <Header />
@@ -66,7 +51,7 @@ function App() {
         {/* CORRECCIÓN: Definimos el JSX directamente en element para evitar re-renderizados destructivos */}
         <Route path="/" element={
           <>
-            <HeroCarousel images={heroSlides} />
+            <HeroCarousel images={heroImages} />
             <FullWidthCarousel title="Novedades de la Semana" products={newArrivals} />
             <main className="pb-10 flex-grow">
               <CategorySection
@@ -109,11 +94,6 @@ function App() {
               bannerImage={cortadoresBanner}
             />
           }
-        />
-        {/* --- NUEVA RUTA PARA EL PRODUCTO INDIVIDUAL --- */}
-        <Route
-          path="/producto/:id"
-          element={<ProductDetail products={products} />}
         />
       </Routes>
 
