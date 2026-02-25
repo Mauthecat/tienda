@@ -3,10 +3,11 @@ import { Menu, X, ShoppingCart, Heart, User } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext'; // IMPORTAMOS EL HOOK DEL CARRITO
 import logoImg from '../assets/logo.jpeg';
+const { totalItems, setIsCartOpen } = useCart();
 
 const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
-    
+
     // OBTENEMOS EL TOTAL DE ÍTEMS DEL CEREBRO DEL CARRITO
     const { totalItems } = useCart();
 
@@ -16,7 +17,7 @@ const Header = () => {
         { name: 'Cortadores', href: '/cortadores' },
     ];
 
-    return ( 
+    return (
         <header className="bg-[#b3f3f5] shadow-sm sticky top-0 z-50 w-full transition-colors duration-300">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16 relative">
@@ -52,11 +53,13 @@ const Header = () => {
                         <button className="hidden md:block p-2 text-gray-800 hover:text-pink-600">
                             <Heart size={24} />
                         </button>
-                        
+
                         {/* BOTÓN DEL CARRITO ACTUALIZADO */}
-                        <button className="relative p-2 text-gray-800 hover:text-indigo-600">
+                        <button
+                            onClick={() => setIsCartOpen(true)}
+                            className="relative p-2 text-gray-800 hover:text-indigo-600"
+                        >
                             <ShoppingCart size={24} />
-                            {/* Solo mostramos el globito si hay más de 0 items */}
                             {totalItems > 0 && (
                                 <span className="absolute top-0 right-0 md:-top-1 md:-right-2 bg-indigo-600 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center animate-in zoom-in">
                                     {totalItems}

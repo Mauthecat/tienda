@@ -16,6 +16,7 @@ import ProductDetail from './components/ProductDetail';
 import logoImg from './assets/logo.jpeg';
 import arosBanner from './assets/portada_aros.png';
 import cortadoresBanner from './assets/portada_cortadores.jpeg';
+import CartDrawer from './components/CartDrawer';
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -57,10 +58,10 @@ function App() {
   ];
 
   return (
-    // ENVOLVEMOS TODO CON EL CARTPROVIDER
     <CartProvider>
       <div className="min-h-screen bg-[#b3f3f5] flex flex-col w-full overflow-x-hidden">
         <Header />
+        <CartDrawer /> {/* <-- NUEVO: Agregamos el cajón del carrito aquí */}
 
         <Routes>
           <Route path="/" element={
