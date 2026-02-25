@@ -1,4 +1,5 @@
 import { Instagram, Mail, MapPin, Phone, Heart } from 'lucide-react';
+import { Link } from 'react-router-dom'; // IMPORTAMOS LINK
 import logoImg from '../assets/logo.jpeg';
 
 const Footer = () => {
@@ -17,13 +18,14 @@ const Footer = () => {
                             Accesorios únicos y cortadores diseñados con pasión. Hecho a mano para resaltar tu estilo con un toque de arte y color.
                         </p>
                         <div className="flex gap-4">
-                            {/* Redes Sociales */}
-                            <a href="#" className="text-gray-400 hover:text-pink-500 transition-colors">
+                            {/* LINK INSTAGRAM CORREGIDO */}
+                            <a href="https://www.instagram.com/poli_cromica/" target="_blank" rel="noreferrer" className="text-gray-400 hover:text-pink-500 transition-colors">
                                 <Instagram size={20} />
                             </a>
-                            <a href="#" className="text-gray-400 hover:text-indigo-600 transition-colors">
+                            {/* LINK CONTACTO */}
+                            <Link to="/contacto" className="text-gray-400 hover:text-indigo-600 transition-colors">
                                 <Mail size={20} />
-                            </a>
+                            </Link>
                         </div>
                     </div>
 
@@ -31,10 +33,9 @@ const Footer = () => {
                     <div>
                         <h3 className="font-bold text-gray-800 mb-4 uppercase text-xs tracking-wider">Tienda</h3>
                         <ul className="space-y-2 text-sm text-gray-600">
-                            <li><a href="#" className="hover:text-indigo-600 transition-colors">Inicio</a></li>
-                            <li><a href="#" className="hover:text-indigo-600 transition-colors">Aros de Arcilla</a></li>
-                            <li><a href="#" className="hover:text-indigo-600 transition-colors">Cortadores</a></li>
-                            <li><a href="#" className="hover:text-indigo-600 transition-colors">Novedades</a></li>
+                            <li><Link to="/" className="hover:text-indigo-600 transition-colors">Inicio</Link></li>
+                            <li><Link to="/aros" className="hover:text-indigo-600 transition-colors">Aros de Arcilla</Link></li>
+                            <li><Link to="/cortadores" className="hover:text-indigo-600 transition-colors">Cortadores</Link></li>
                         </ul>
                     </div>
 
@@ -42,10 +43,8 @@ const Footer = () => {
                     <div>
                         <h3 className="font-bold text-gray-800 mb-4 uppercase text-xs tracking-wider">Ayuda</h3>
                         <ul className="space-y-2 text-sm text-gray-600">
-                            <li><a href="#" className="hover:text-indigo-600 transition-colors">Envíos y Entregas</a></li>
-                            <li><a href="#" className="hover:text-indigo-600 transition-colors">Cambios y Devoluciones</a></li>
-                            <li><a href="#" className="hover:text-indigo-600 transition-colors">Preguntas Frecuentes</a></li>
-                            <li><a href="#" className="hover:text-indigo-600 transition-colors">Términos y Condiciones</a></li>
+                            <li><Link to="/contacto" className="hover:text-indigo-600 transition-colors">Envíos y Entregas</Link></li>
+                            <li><Link to="/contacto" className="hover:text-indigo-600 transition-colors">Preguntas Frecuentes</Link></li>
                         </ul>
                     </div>
 
@@ -59,14 +58,9 @@ const Footer = () => {
                             </li>
                             <li className="flex items-center gap-3">
                                 <Mail size={18} className="text-[#e5c2bc] flex-shrink-0" />
-                                <a href="mailto:hola@policromica.cl" className="hover:text-indigo-600">mona@policromica.cl</a>
+                                {/* REEMPLAZAMOS EL MAIL POR UN LINK A CONTACTO */}
+                                <Link to="/contacto" className="hover:text-indigo-600">Enviar un mensaje</Link>
                             </li>
-                            {/* Opcional: Teléfono si aplica */}
-                            {/* <li className="flex items-center gap-3">
-                <Phone size={18} className="text-[#e5c2bc] flex-shrink-0" />
-                <span>+56 9 1234 5678</span>
-              </li> 
-              */}
                         </ul>
                     </div>
                 </div>
