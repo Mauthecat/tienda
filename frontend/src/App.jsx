@@ -12,6 +12,8 @@ import ProductPage from './components/ProductPage';
 import logoImg from './assets/logo.jpeg';
 import arosBanner from './assets/portada_aros.png';
 import cortadoresBanner from './assets/portada_cortadores.jpeg';
+import ProductDetail from './components/ProductDetail'
+
 function App() {
   const [products, setProducts] = useState([]);
 
@@ -94,6 +96,11 @@ function App() {
               bannerImage={cortadoresBanner}
             />
           }
+        />
+        {/* --- NUEVA RUTA PARA EL PRODUCTO INDIVIDUAL --- */}
+        <Route
+          path="/producto/:id"
+          element={<ProductDetail products={products} />}
         />
       </Routes>
 

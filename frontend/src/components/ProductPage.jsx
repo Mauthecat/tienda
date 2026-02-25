@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Filter, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import logoImg from '../assets/logo.jpeg'; // Usaremos esto de banner por defecto
 
 const ProductPage = ({ title, products, bannerImage }) => {
@@ -75,7 +76,7 @@ const ProductPage = ({ title, products, bannerImage }) => {
                 {/* === BARRA DE CONTROLES (Móvil: Filtro | PC: Ordenar) === */}
                 <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
 
-                    {/* Botón Filtros Móvil (Igual a la imagen 2) */}
+                    {/* Botón Filtros Móvil */}
                     <button
                         onClick={() => setIsMobileFilterOpen(true)}
                         className="md:hidden w-full bg-gray-900 text-white py-3 uppercase font-bold tracking-wider flex justify-center items-center gap-2 text-sm"
@@ -145,9 +146,13 @@ const ProductPage = ({ title, products, bannerImage }) => {
                     <div className="flex-1">
                         {/* Grid: 2 columnas móvil, 3 columnas desktop */}
                         <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                            {/* CORRECCIÓN: Aquí agregamos el Link y mantenemos el contenido visual */}
                             {currentProducts.map((product) => (
-                                <div key={product.id} className="group flex flex-col bg-[#feecd4] border border-gray-100 hover:shadow-lg transition-all duration-300">
-
+                                <Link
+                                    to={`/producto/${product.id}`}
+                                    key={product.id}
+                                    className="group flex flex-col bg-[#feecd4] border border-gray-100 hover:shadow-lg transition-all duration-300 cursor-pointer"
+                                >
                                     {/* Imagen */}
                                     <div className="relative aspect-[4/5] overflow-hidden bg-gray-100">
                                         <img
@@ -175,7 +180,7 @@ const ProductPage = ({ title, products, bannerImage }) => {
                                             </span>
                                         </div>
                                     </div>
-                                </div>
+                                </Link>
                             ))}
                         </div>
 
