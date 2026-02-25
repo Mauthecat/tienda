@@ -2,6 +2,9 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Routes, Route } from 'react-router-dom';
 
+// IMPORTAMOS EL CEREBRO DEL CARRITO
+import { CartProvider } from './context/CartContext';
+
 import Header from './components/header';
 import HeroCarousel from './components/heroCarousel';
 import CategorySection from './components/categorySection';
@@ -9,7 +12,7 @@ import FullWidthCarousel from './components/fullWidthCarousel';
 import InstagramFeed from './components/instagramFeed';
 import Footer from './components/footer';
 import ProductPage from './components/ProductPage';
-import ProductDetail from './components/ProductDetail'; // Aseguramos que esto esté importado
+import ProductDetail from './components/ProductDetail'; 
 import logoImg from './assets/logo.jpeg';
 import arosBanner from './assets/portada_aros.png';
 import cortadoresBanner from './assets/portada_cortadores.jpeg';
@@ -47,7 +50,6 @@ function App() {
   const cortadoresProducts = products.filter(p => p.category__name === 'Cortadores');
   const newArrivals = products.slice(-5);
 
-  // === AQUÍ ESTÁN LOS SLIDES DEL CARRUSEL ===
   const heroSlides = [
     { image: logoImg, link: '/', title: 'Destacados' },
     { image: arosBanner, link: '/aros', title: 'Aros' },
@@ -55,66 +57,68 @@ function App() {
   ];
 
   return (
-    <div className="min-h-screen bg-[#b3f3f5] flex flex-col w-full overflow-x-hidden">
-      <Header />
+    // ENVOLVEMOS TODO CON EL CARTPROVIDER
+    <CartProvider>
+      <div className="min-h-screen bg-[#b3f3f5] flex flex-col w-full overflow-x-hidden">
+        <Header />
 
-      <Routes>
-        <Route path="/" element={
-          <>
-            {/* AQUÍ ESTABA EL POSIBLE ERROR: Le mandamos slides={heroSlides} */}
-            <HeroCarousel slides={heroSlides} />
-            <FullWidthCarousel title="Novedades de la Semana" products={newArrivals} />
-            <main className="pb-10 flex-grow">
-              <CategorySection
-                title="Nuestros Aritos"
-                buttonText="Ver Aritos"
-                bannerImage={arosBanner}
+        <Routes>
+          <Route path="/" element={
+            <>
+              <HeroCarousel slides={heroSlides} />
+              <FullWidthCarousel title="Novedades de la Semana" products={newArrivals} />
+              <main className="pb-10 flex-grow">
+                <CategorySection
+                  title="Nuestros Aritos"
+                  buttonText="Ver Aritos"
+                  bannerImage={arosBanner}
+                  products={arosProducts}
+                  isReversed={false}
+                />
+                <div className="w-full h-px bg-cyan-900/10 max-w-7xl mx-auto my-8"></div>
+                <CategorySection
+                  title="Cortadores Exclusivos"
+                  buttonText="Ver Todos"
+                  bannerImage={cortadoresBanner}
+                  products={cortadoresProducts}
+                  isReversed={true}
+                />
+              </main>
+              <InstagramFeed />
+            </>
+          } />
+
+          <Route
+            path="/aros"
+            element={
+              <ProductPage
+                title="Colección de Aros"
                 products={arosProducts}
-                isReversed={false}
+                bannerImage={arosBanner}
               />
-              <div className="w-full h-px bg-cyan-900/10 max-w-7xl mx-auto my-8"></div>
-              <CategorySection
-                title="Cortadores Exclusivos"
-                buttonText="Ver Todos"
-                bannerImage={cortadoresBanner}
+            }
+          />
+
+          <Route
+            path="/cortadores"
+            element={
+              <ProductPage
+                title="Cortadores"
                 products={cortadoresProducts}
-                isReversed={true}
+                bannerImage={cortadoresBanner}
               />
-            </main>
-            <InstagramFeed />
-          </>
-        } />
+            }
+          />
 
-        <Route
-          path="/aros"
-          element={
-            <ProductPage
-              title="Colección de Aros"
-              products={arosProducts}
-              bannerImage={arosBanner}
-            />
-          }
-        />
+          <Route
+            path="/producto/:id"
+            element={<ProductDetail products={products} />}
+          />
+        </Routes>
 
-        <Route
-          path="/cortadores"
-          element={
-            <ProductPage
-              title="Cortadores"
-              products={cortadoresProducts}
-              bannerImage={cortadoresBanner}
-            />
-          }
-        />
-
-        <Route
-          path="/producto/:id"
-          element={<ProductDetail products={products} />}
-        />
-      </Routes>
-
-      <Footer />
-    </div>
+        <Footer />
+      </div>
+    </CartProvider>
   )
 }
 
