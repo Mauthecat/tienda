@@ -19,13 +19,14 @@ def get_products(request):
             main_image_obj = product.images.first()
             
         image_url = main_image_obj.image.url if main_image_obj else None
-
+        all_images = [img.image.url for img in product.images.all()]
         products_list.append({
             'id': product.id,
             'name': product.name,
             'price': float(product.price),
             'category__name': product.category.name if product.category else "Sin categoría",
             'main_image': image_url,
+            'all_images': all_images,
             'description': product.description
         })
 

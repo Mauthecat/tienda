@@ -8,7 +8,7 @@ import CategorySection from './components/categorySection';
 import FullWidthCarousel from './components/fullWidthCarousel';
 import InstagramFeed from './components/instagramFeed';
 import Footer from './components/footer';
-import ProductPage from './components/ProductPage'; 
+import ProductPage from './components/ProductPage';
 import logoImg from './assets/logo.jpeg';
 import arosBanner from './assets/portada_aros.png';
 import cortadoresBanner from './assets/portada_cortadores.jpeg';
@@ -25,13 +25,22 @@ function App() {
     const fetchProducts = async () => {
       try {
         const response = await axios.get(`${BASE_URL}/api/products/`);
+
         const formattedData = response.data.map(item => ({
           ...item,
           price: new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(item.price),
+
+          // Formateamos la imagen principal
           image: item.main_image
             ? (item.main_image.startsWith('http') ? item.main_image : `${BASE_URL}${item.main_image}`)
-            : logoImg
+            : logoImg,
+
+          // NUEVO: Formateamos el array con TODAS las imágenes
+          images: item.all_images && item.all_images.length > 0
+            ? item.all_images.map(img => img.startsWith('http') ? img : `${BASE_URL}${img}`)
+            : [logoImg] // Fallback: si no tiene fotos, metemos el logo en un array
         }));
+
         setProducts(formattedData);
       } catch (error) {
         console.error("Error conectando con Django:", error);
