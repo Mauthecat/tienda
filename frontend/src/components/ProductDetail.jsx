@@ -1,15 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ShoppingBag, ChevronLeft, Star } from 'lucide-react';
+import { ShoppingBag, ChevronLeft } from 'lucide-react'; // Quitamos Star de aquí
 
 const ProductDetail = ({ products }) => {
     const { id } = useParams();
     const product = products.find(p => p.id.toString() === id);
     
-    // Estado para saber qué foto estamos viendo en grande
     const [selectedImage, setSelectedImage] = useState(null);
 
-    // Cuando el producto carga por primera vez, seleccionamos su primera foto
     useEffect(() => {
         if (product && product.images && product.images.length > 0) {
             setSelectedImage(product.images[0]);
@@ -35,10 +33,16 @@ const ProductDetail = ({ products }) => {
         );
     }
 
+    // LÓGICA NUEVA: Buscar productos similares (misma categoría, excluyendo el actual, máximo 4)
+    const similarProducts = products
+        .filter(p => p.category__name === product.category__name && p.id.toString() !== id)
+        .slice(0, 4);
+
     return (
         <div className="min-h-screen bg-gray-50 pt-8 pb-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 
+                {/* Migas de pan */}
                 <nav className="flex text-sm text-gray-500 mb-8 gap-2">
                     <Link to="/" className="hover:text-indigo-600 transition-colors">Inicio</Link>
                     <span>/</span>
@@ -49,19 +53,18 @@ const ProductDetail = ({ products }) => {
                     <span className="text-gray-800 font-medium truncate">{product.name}</span>
                 </nav>
 
-                <div className="flex flex-col md:flex-row gap-12 bg-white p-6 md:p-12 rounded-3xl shadow-sm border border-gray-100">
+                {/* DETALLE DEL PRODUCTO */}
+                <div className="flex flex-col md:flex-row gap-12 bg-white p-6 md:p-12 rounded-3xl shadow-sm border border-gray-100 mb-16">
                     
-                    {/* COLUMNA IZQUIERDA: Imágenes Dinámicas */}
+                    {/* COLUMNA IZQUIERDA: Imágenes */}
                     <div className="w-full md:w-1/2 flex gap-4 flex-col-reverse md:flex-row">
-                        
-                        {/* Galería lateral de miniaturas (Solo se muestra si hay más de 1 foto) */}
                         {product.images && product.images.length > 1 && (
                             <div className="flex md:flex-col gap-4 overflow-x-auto md:overflow-y-auto md:w-20 snap-x">
                                 {product.images.map((imgUrl, index) => (
                                     <img 
                                         key={index}
                                         src={imgUrl} 
-                                        onClick={() => setSelectedImage(imgUrl)} // Cambia la foto principal al hacer clic
+                                        onClick={() => setSelectedImage(imgUrl)}
                                         className={`w-20 h-20 object-cover rounded-lg cursor-pointer flex-shrink-0 transition-all ${
                                             selectedImage === imgUrl 
                                             ? 'border-2 border-indigo-600 opacity-100' 
@@ -73,7 +76,6 @@ const ProductDetail = ({ products }) => {
                             </div>
                         )}
                         
-                        {/* Imagen Principal (Muestra la seleccionada, si no hay, muestra la default) */}
                         <div className="flex-1 bg-gray-100 rounded-2xl overflow-hidden aspect-square relative">
                             <img 
                                 src={selectedImage || product.image} 
@@ -86,20 +88,11 @@ const ProductDetail = ({ products }) => {
                     {/* COLUMNA DERECHA: Información */}
                     <div className="w-full md:w-1/2 flex flex-col justify-center">
                         <p className="text-gray-500 uppercase tracking-widest text-sm font-bold mb-2">Policromica</p>
-                        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-4">
+                        
+                        {/* Removimos la sección de estrellas y reseñas de aquí */}
+                        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-6">
                             {product.name}
                         </h1>
-
-                        <div className="flex items-center gap-2 mb-6">
-                            <div className="flex text-yellow-400">
-                                <Star size={16} fill="currentColor" />
-                                <Star size={16} fill="currentColor" />
-                                <Star size={16} fill="currentColor" />
-                                <Star size={16} fill="currentColor" />
-                                <Star size={16} fill="currentColor" />
-                            </div>
-                            <span className="text-sm text-gray-500 underline cursor-pointer">Ver reseñas</span>
-                        </div>
 
                         <div className="flex items-end gap-4 mb-8 pb-8 border-b border-gray-100">
                             <span className="text-4xl font-bold text-pink-600">{product.price}</span>
@@ -126,6 +119,42 @@ const ProductDetail = ({ products }) => {
 
                     </div>
                 </div>
+
+                {/* NUEVA SECCIÓN: ARTÍCULOS QUE PODRÍAN GUSTARTE */}
+                {similarProducts.length > 0 && (
+                    <div className="mt-16">
+                        <h2 className="text-2xl font-bold text-gray-900 mb-8 uppercase tracking-wider">
+                            También te podría gustar
+                        </h2>
+                        
+                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
+                            {similarProducts.map(similar => (
+                                <Link 
+                                    to={`/producto/${similar.id}`} 
+                                    key={similar.id}
+                                    className="group flex flex-col bg-white border border-gray-100 hover:shadow-lg transition-all duration-300 rounded-2xl overflow-hidden"
+                                >
+                                    <div className="relative aspect-square overflow-hidden bg-gray-100">
+                                        <img 
+                                            src={similar.image} 
+                                            alt={similar.name} 
+                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                        />
+                                    </div>
+                                    <div className="p-4 flex flex-col flex-grow">
+                                        <h3 className="font-medium text-gray-900 text-sm md:text-base leading-tight mb-2 line-clamp-2">
+                                            {similar.name}
+                                        </h3>
+                                        <div className="mt-auto pt-2">
+                                            <span className="font-bold text-pink-600">{similar.price}</span>
+                                        </div>
+                                    </div>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
             </div>
         </div>
     );
