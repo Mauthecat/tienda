@@ -53,7 +53,11 @@ function App() {
   const cortadoresProducts = products.filter(p => p.category__name === 'Cortadores');
   const newArrivals = products.slice(-5);
   const heroImages = [logoImg, logoImg, logoImg];
-
+  const heroSlides = [
+    { image: logoImg, link: '/', title: 'Destacados' },           // Slide 1
+    { image: arosBanner, link: '/aros', title: 'Aros' },          // Slide 2
+    { image: cortadoresBanner, link: '/cortadores', title: 'Cortadores' } // Slide 3
+  ];
   return (
     <div className="min-h-screen bg-[#b3f3f5] flex flex-col w-full overflow-x-hidden">
       <Header />
@@ -62,7 +66,7 @@ function App() {
         {/* CORRECCIÓN: Definimos el JSX directamente en element para evitar re-renderizados destructivos */}
         <Route path="/" element={
           <>
-            <HeroCarousel images={heroImages} />
+            <HeroCarousel images={heroSlides} />
             <FullWidthCarousel title="Novedades de la Semana" products={newArrivals} />
             <main className="pb-10 flex-grow">
               <CategorySection
