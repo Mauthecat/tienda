@@ -1,14 +1,17 @@
-import { useState, useRef } from 'react';
-import { ShoppingCart, Star, ChevronLeft, ChevronRight } from 'lucide-react';
-import { Link } from 'react-router-dom'; // IMPORTAMOS LINK
+import { useRef } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react'; // Quitamos ShoppingCart y Star porque ya no se usan
+import { Link } from 'react-router-dom';
+import { useCart } from '../context/CartContext'; // IMPORTAMOS EL CONTEXTO DEL CARRITO
 
 const FullWidthCarousel = ({ title, products }) => {
     const carouselRef = useRef(null);
+    const { addToCart } = useCart(); // Extraemos la función para añadir al carro
 
     const scroll = (direction) => {
         if (carouselRef.current) {
             const { current } = carouselRef;
-            const scrollAmount = 300;
+            // Ajustamos el scroll para que avance con un ritmo controlado
+            const scrollAmount = current.offsetWidth > 600 ? 500 : 250;
             current.scrollBy({
                 left: direction === 'left' ? -scrollAmount : scrollAmount,
                 behavior: 'smooth',
@@ -37,7 +40,8 @@ const FullWidthCarousel = ({ title, products }) => {
 
                 <div
                     ref={carouselRef}
-                    className="flex overflow-x-auto gap-4 pb-4 pt-2 px-4 md:px-0 snap-x scrollbar-hide"
+                    // Agregamos snap-mandatory para frenar el deslizamiento bruscamente en la tarjeta exacta
+                    className="flex overflow-x-auto gap-4 pb-4 pt-2 px-4 md:px-0 snap-x snap-mandatory scrollbar-hide"
                     style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
                 >
                     <style>{`
@@ -47,11 +51,11 @@ const FullWidthCarousel = ({ title, products }) => {
                     `}</style>
 
                     {products.map((product) => (
-                        // CAMBIAMOS DIV POR LINK
                         <Link 
                             to={`/producto/${product.id}`} 
                             key={product.id} 
-                            className="block flex-shrink-0 min-w-[200px] md:min-w-[230px] bg-[#e5c2bc] rounded-2xl shadow-sm hover:shadow-xl transition-all p-3 snap-start border border-cyan-100 flex flex-col justify-between group h-full cursor-pointer"
+                            // Reducimos un poco el padding inferior (p-3 a pb-2) para pegar más el botón al borde inferior
+                            className="block flex-shrink-0 min-w-[200px] md:min-w-[230px] bg-[#e5c2bc] rounded-2xl shadow-sm hover:shadow-xl transition-all p-3 pb-2 snap-start snap-always border border-cyan-100 flex flex-col justify-between group h-full cursor-pointer"
                         >
 
                             <div className="relative h-48 bg-gray-50 rounded-xl mb-3 overflow-hidden">
@@ -62,26 +66,36 @@ const FullWidthCarousel = ({ title, products }) => {
                                         className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                                     />
                                 </div>
-                                <button 
-                                    onClick={(e) => e.preventDefault()} 
-                                    className="absolute bottom-2 right-2 bg-white p-2 rounded-full shadow text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity hover:bg-indigo-50"
-                                >
-                                    <ShoppingCart size={18} />
-                                </button>
-                                <span className="absolute top-2 left-2 bg-[#feecd4] text-orange-800 text-[10px] font-bold px-2 py-1 rounded-full">
-                                    NUEVO
-                                </span>
+                                {/* SE ELIMINÓ EL BOTÓN DEL CARRITO SOBRE LA IMAGEN */}
+                                {/* SE ELIMINÓ LA ETIQUETA "NUEVO" */}
                             </div>
 
-                            <div>
-                                <h3 className="font-semibold text-gray-700 text-sm leading-tight mb-1 line-clamp-2">{product.name}</h3>
-                                <div className="flex justify-between items-center mt-2">
-                                    <span className="text-indigo-600 font-bold text-lg">{product.price}</span>
-                                    {/* Oculté las estrellas ya que no usamos reviews por ahora */}
+                            <div className="flex flex-col flex-grow justify-between">
+                                <div>
+                                    <h3 className="font-semibold text-gray-700 text-sm leading-tight mb-1 line-clamp-2">{product.name}</h3>
+                                    <div className="flex justify-between items-center mt-1">
+                                        <span className="text-indigo-600 font-bold text-lg">{product.price}</span>
+                                    </div>
                                 </div>
-                                {/* Cambiamos el <button> a un <div> para que no sea un botón dentro de un link */}
-                                <div className="w-full text-center mt-3 bg-[#feecd4] text-cyan-700 text-xs font-bold py-2 rounded-lg hover:bg-white hover:text-orange-800 transition-colors">
-                                    Ver Detalles
+
+                                {/* NUEVO BOTÓN CÁPSULA: Ver / Añadir al carro */}
+                                <div className="mt-3 flex items-center justify-center w-full bg-[#feecd4] rounded-full overflow-hidden shadow-sm border border-[#f5d7ce]">
+                                    <span className="flex-1 text-center py-2 text-cyan-800 text-[11px] md:text-xs font-bold hover:bg-white hover:text-indigo-600 transition-colors">
+                                        Ver
+                                    </span>
+                                    
+                                    {/* Separador diagonal minimalista */}
+                                    <span className="text-orange-300 font-light text-xs select-none">/</span>
+                                    
+                                    <button
+                                        onClick={(e) => {
+                                            e.preventDefault(); // Evita navegar a la página del producto al hacer clic aquí
+                                            addToCart(product); // Llama a la lógica del carrito fantasma
+                                        }}
+                                        className="flex-1 text-center py-2 text-pink-600 text-[11px] md:text-xs font-bold hover:bg-white hover:text-pink-700 transition-colors"
+                                    >
+                                        Añadir al carro
+                                    </button>
                                 </div>
                             </div>
 
