@@ -17,6 +17,7 @@ import logoImg from './assets/logo.jpeg';
 import arosBanner from './assets/portada_aros.png';
 import cortadoresBanner from './assets/portada_cortadores.jpeg';
 import CartDrawer from './components/CartDrawer';
+import Checkout from './components/Checkout'
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -114,6 +115,10 @@ function App() {
           <Route
             path="/producto/:id"
             element={<ProductDetail products={products} />}
+          />
+          <Route
+            path="/checkout"
+            element={<Checkout />}
           />
         </Routes>
 
