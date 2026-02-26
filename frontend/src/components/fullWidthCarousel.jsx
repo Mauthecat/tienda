@@ -6,7 +6,6 @@ import { useCart } from '../context/CartContext';
 const FullWidthCarousel = ({ title, products }) => {
     const { addToCart } = useCart(); 
     
-    // REFERENCIAS Y ESTADOS PARA EL ARRASTRE
     const carouselRef = useRef(null);
     const [isDragging, setIsDragging] = useState(false);
     
@@ -86,6 +85,8 @@ const FullWidthCarousel = ({ title, products }) => {
                         <Link 
                             to={`/producto/${product.id}`} 
                             key={product.id} 
+                            draggable={false} // <-- BLOQUEO 1
+                            onDragStart={(e) => e.preventDefault()} // <-- BLOQUEO 2
                             onClick={(e) => {
                                 if (isDragging) e.preventDefault(); 
                             }}

@@ -6,7 +6,6 @@ import { useCart } from '../context/CartContext';
 const CategorySection = ({ title, buttonText, bannerImage, products, isReversed }) => {
   const { addToCart } = useCart();
   
-  // REFERENCIAS Y ESTADOS PARA EL ARRASTRE (DRAG TO SCROLL)
   const carouselRef = useRef(null);
   const [isDragging, setIsDragging] = useState(false);
   
@@ -27,16 +26,15 @@ const CategorySection = ({ title, buttonText, bannerImage, products, isReversed 
 
   const handleMouseUp = () => {
     isDown.current = false;
-    // Retraso de 50ms para asegurar que no dispare el click al soltar el ratón
     setTimeout(() => setIsDragging(false), 50);
   };
 
   const handleMouseMove = (e) => {
     if (!isDown.current) return;
     e.preventDefault();
-    if (!isDragging) setIsDragging(true); // Marcamos que está arrastrando
+    if (!isDragging) setIsDragging(true);
     const x = e.pageX - carouselRef.current.offsetLeft;
-    const walk = (x - startX.current) * 2; // Multiplicador de velocidad de arrastre
+    const walk = (x - startX.current) * 2; 
     carouselRef.current.scrollLeft = scrollLeft.current - walk;
   };
 
@@ -49,7 +47,6 @@ const CategorySection = ({ title, buttonText, bannerImage, products, isReversed 
 
       <div className={`flex flex-col md:flex-row gap-6 ${isReversed ? 'md:flex-row-reverse' : ''}`}>
         
-        {/* TARJETA BANNER */}
         <div className="w-full md:w-1/3 relative h-[400px] md:h-auto rounded-3xl overflow-hidden shadow-xl group">
           <img 
             src={bannerImage} 
@@ -68,7 +65,6 @@ const CategorySection = ({ title, buttonText, bannerImage, products, isReversed 
           </div>
         </div>
 
-        {/* CARRUSEL DE PRODUCTOS */}
         <div className="w-full md:w-2/3 flex flex-col justify-center overflow-hidden">
           
           <div 
@@ -77,7 +73,6 @@ const CategorySection = ({ title, buttonText, bannerImage, products, isReversed 
             onMouseLeave={handleMouseLeave}
             onMouseUp={handleMouseUp}
             onMouseMove={handleMouseMove}
-            // Agregamos cursor-grab (mano abierta) y active:cursor-grabbing (mano cerrada)
             className="flex overflow-x-auto gap-4 pb-4 pt-2 px-2 snap-x snap-mandatory scrollbar-hide cursor-grab active:cursor-grabbing" 
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
@@ -89,8 +84,9 @@ const CategorySection = ({ title, buttonText, bannerImage, products, isReversed 
               <Link 
                 to={`/producto/${product.id}`} 
                 key={product.id} 
+                draggable={false} // <-- BLOQUEO 1: Evita que se trate como archivo
+                onDragStart={(e) => e.preventDefault()} // <-- BLOQUEO 2: Mata el evento fantasma del navegador
                 onClick={(e) => {
-                    // Si el usuario estaba arrastrando, evitamos que entre al producto
                     if (isDragging) e.preventDefault(); 
                 }}
                 className="block flex-shrink-0 min-w-[200px] md:min-w-[230px] bg-[#feecd4] rounded-2xl shadow-sm hover:shadow-xl transition-all p-3 pb-2 snap-start snap-always border border-orange-100 flex flex-col justify-between group select-none"
@@ -101,7 +97,7 @@ const CategorySection = ({ title, buttonText, bannerImage, products, isReversed 
                       src={product.image} 
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                       alt={product.name} 
-                      draggable="false" // Evita el fantasma de imagen al arrastrar
+                      draggable="false" 
                    />
                 </div>
 
@@ -114,7 +110,6 @@ const CategorySection = ({ title, buttonText, bannerImage, products, isReversed 
                   </div>
                 </div>
                   
-                {/* BOTÓN CÁPSULA (Lo reactivamos para clics aislándolo del arrastre) */}
                 <div className="mt-3 flex items-center justify-center w-full bg-white rounded-full overflow-hidden shadow-sm border border-orange-100 pointer-events-auto">
                     <span className="flex-1 text-center py-2 text-cyan-800 text-[11px] md:text-xs font-bold hover:bg-orange-50 hover:text-indigo-600 transition-colors">
                         Ver Detalles
@@ -125,7 +120,7 @@ const CategorySection = ({ title, buttonText, bannerImage, products, isReversed 
                     <button
                         onClick={(e) => {
                             e.preventDefault(); 
-                            if (isDragging) return; // No agrega si fue arrastre
+                            if (isDragging) return; 
                             addToCart(product); 
                         }}
                         className="flex-1 text-center py-2 text-pink-600 text-[11px] md:text-xs font-bold hover:bg-orange-50 hover:text-pink-700 transition-colors cursor-pointer z-10"
