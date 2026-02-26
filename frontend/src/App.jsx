@@ -21,6 +21,7 @@ import Checkout from './components/Checkout';
 import Contact from './components/Contact';
 import { AuthProvider } from './context/AuthContext';
 import User from './components/User';
+import CheckoutStatus from './components/CheckoutStatus';
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -131,6 +132,10 @@ function App() {
             <Route
               path="/perfil"
               element={<User />}
+            />
+            <Route
+              path="/checkout/status"
+              element={<CheckoutStatus />}
             />
           </Routes>
 

@@ -1,13 +1,13 @@
 import { useState } from 'react';
 import { useCart } from '../context/CartContext';
-import { Link, useNavigate } from 'react-router-dom';
-import { ChevronLeft, ShieldCheck } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { ChevronLeft, ShieldCheck, Loader2 } from 'lucide-react';
+import axios from 'axios';
 
 const Checkout = () => {
     const { cart, totalPrice } = useCart();
-    const navigate = useNavigate();
+    const [isLoading, setIsLoading] = useState(false); // Para mostrar que está cargando
 
-    // Estado para guardar los datos del cliente temporalmente
     const [formData, setFormData] = useState({
         nombre: '', apellido: '', email: '', telefono: '', direccion: '', ciudad: ''
     });
@@ -16,11 +16,30 @@ const Checkout = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
-        // AQUÍ ES DONDE CONECTAREMOS CON DJANGO Y MERCADO PAGO MÁS ADELANTE
-        console.log("Enviando orden a Django...", { cliente: formData, carrito: cart });
-        alert("¡Aquí enviaremos los datos a Django para verificar stock y abrir el pago!");
+        setIsLoading(true);
+
+        const BASE_URL = import.meta.env.MODE === 'production'
+            ? 'https://tienda-backend-fn64.onrender.com'
+            : 'http://127.0.0.1:8000';
+
+        try {
+            // Le enviamos el total y el correo a tu función create_payment en Django
+            const response = await axios.post(`${BASE_URL}/api/payment/create/`, {
+                amount: totalPrice,
+                email: formData.email,
+            });
+
+            // Si Django responde con la URL de Flow, redirigimos al cliente
+            if (response.data.url) {
+                window.location.href = response.data.url;
+            }
+        } catch (error) {
+            console.error("Error conectando con Flow:", error);
+            alert("Hubo un problema al generar el pago. Por favor, intenta nuevamente.");
+            setIsLoading(false);
+        }
     };
 
     if (cart.length === 0) {
@@ -127,14 +146,15 @@ const Checkout = () => {
                             <button 
                                 form="checkout-form"
                                 type="submit"
-                                className="w-full bg-gray-900 text-white font-bold py-4 rounded-xl uppercase tracking-widest transition-transform hover:-translate-y-1 shadow-lg shadow-gray-900/20 flex justify-center items-center gap-2"
+                                disabled={isLoading}
+                                className="w-full bg-gray-900 text-white font-bold py-4 rounded-xl uppercase tracking-widest transition-transform hover:-translate-y-1 shadow-lg shadow-gray-900/20 flex justify-center items-center gap-2 disabled:opacity-70 disabled:hover:translate-y-0"
                             >
-                                <ShieldCheck size={20} />
-                                Proceder al Pago Seguro
+                                {isLoading ? <Loader2 className="animate-spin" size={20} /> : <ShieldCheck size={20} />}
+                                {isLoading ? 'Conectando...' : 'Proceder al Pago Seguro'}
                             </button>
                             
                             <p className="text-xs text-gray-400 text-center mt-4 flex items-center justify-center gap-1">
-                                Pago procesado de forma segura por Mercado Pago
+                                Pago procesado de forma segura por Flow
                             </p>
                         </div>
                     </div>

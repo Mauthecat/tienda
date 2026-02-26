@@ -5,7 +5,7 @@ export const useCart = () => useContext(CartContext);
 
 export const CartProvider = ({ children }) => {
     const [isCartOpen, setIsCartOpen] = useState(false);
-    
+
     const [cart, setCart] = useState(() => {
         const savedCart = localStorage.getItem('cart');
         return savedCart ? JSON.parse(savedCart) : [];
@@ -18,7 +18,7 @@ export const CartProvider = ({ children }) => {
     const addToCart = (product, quantity = 1) => {
         setCart(prevCart => {
             const existingProduct = prevCart.find(item => item.id === product.id);
-            
+
             if (existingProduct) {
                 // VERIFICACIÓN DE STOCK: Si al sumar se pasa del stock, bloqueamos
                 if (existingProduct.quantity + quantity > product.stock) {
@@ -38,7 +38,7 @@ export const CartProvider = ({ children }) => {
 
             return [...prevCart, { ...product, quantity }];
         });
-        setIsCartOpen(true); 
+        setIsCartOpen(true);
     };
 
     const updateQuantity = (productId, amount) => {
@@ -46,13 +46,13 @@ export const CartProvider = ({ children }) => {
             const updatedCart = prevCart.map(item => {
                 if (item.id === productId) {
                     const newQuantity = item.quantity + amount;
-                    
+
                     // VERIFICACIÓN DE STOCK EN EL BOTÓN "+" DEL CARRITO
                     if (amount > 0 && newQuantity > item.stock) {
                         alert(`Has alcanzado el límite de stock disponible para ${item.name}.`);
                         return item;
                     }
-                    
+
                     return { ...item, quantity: newQuantity };
                 }
                 return item;
@@ -64,24 +64,27 @@ export const CartProvider = ({ children }) => {
     const removeFromCart = (productId) => {
         setCart(prevCart => prevCart.filter(item => item.id !== productId));
     };
-
+    const clearCart = () => {
+        setCart([]);
+    };
     const totalItems = cart.reduce((total, item) => total + item.quantity, 0);
-    
+
     const totalPrice = cart.reduce((total, item) => {
         const priceNum = parseInt(item.price.replace(/\D/g, '')) || 0;
         return total + (priceNum * item.quantity);
     }, 0);
 
     return (
-        <CartContext.Provider value={{ 
-            cart, 
-            addToCart, 
-            removeFromCart, 
+        <CartContext.Provider value={{
+            cart,
+            addToCart,
+            removeFromCart,
             updateQuantity,
-            totalItems, 
-            totalPrice, 
-            isCartOpen, 
-            setIsCartOpen 
+            clearCart,
+            totalItems,
+            totalPrice,
+            isCartOpen,
+            setIsCartOpen
         }}>
             {children}
         </CartContext.Provider>

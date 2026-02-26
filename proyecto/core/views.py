@@ -3,6 +3,12 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
 from .models import Product
+import hmac
+import hashlib
+import uuid
+import requests
+import os
+from urllib.parse import urlencode
 
 # Obtenemos tu modelo de Usuario personalizado
 User = get_user_model()
@@ -63,3 +69,74 @@ def register_user(request):
             return JsonResponse({'error': str(e)}, status=400)
             
     return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+# --- Función 4: Crear link de pago en Flow ---
+@csrf_exempt
+def create_payment(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            # React nos enviará el monto total y el correo del cliente
+            amount = int(data.get('amount', 0))
+            email = data.get('email', 'cliente@policromica.cl')
+
+            # 1. Configuración de Flow Sandbox
+            api_key = os.environ.get("FLOW_API_KEY")
+            secret_key = os.environ.get("FLOW_SECRET_KEY")
+            api_url = "https://sandbox.flow.cl/api"
+
+            # 2. Generamos un número de orden único temporal
+            commerce_order = str(uuid.uuid4())[:20] 
+
+            # 3. Preparamos los datos exigidos por Flow
+            params = {
+                "apiKey": api_key,
+                "commerceOrder": commerce_order,
+                "subject": "Compra en Policrómica",
+                "currency": "CLP",
+                "amount": amount,
+                "email": email,
+                # urlConfirmation: La ruta oculta donde Flow le avisa a Django que el pago fue exitoso
+                "urlConfirmation": "https://tienda-backend-fn64.onrender.com/api/payment/confirm/", 
+                # urlReturn: A donde vuelve el cliente después de pagar
+                "urlReturn": "https://policromica.vercel.app/checkout/status", 
+            }
+
+            # 4. Firmamos los parámetros (Seguridad estricta de Flow)
+            sorted_params = sorted(params.items(), key=lambda x: x[0])
+            to_sign = "".join([f"{key}{value}" for key, value in sorted_params])
+            signature = hmac.new(secret_key.encode(), to_sign.encode(), hashlib.sha256).hexdigest()
+            params["s"] = signature
+
+            # 5. Enviamos la petición a Flow
+            encoded_body = urlencode(params)
+            response = requests.post(f"{api_url}/payment/create", data=encoded_body, headers={'Content-Type':'application/x-www-form-urlencoded'})
+            
+            if response.status_code == 200:
+                flow_data = response.json()
+                # Unimos la URL base con el Token único para redirigir al cliente
+                payment_url = f"{flow_data['url']}?token={flow_data['token']}"
+                return JsonResponse({'url': payment_url}, status=200)
+            else:
+                return JsonResponse({'error': 'Error comunicando con Flow', 'details': response.text}, status=400)
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+            
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+
+# --- Función 5: Recibir la confirmación secreta de Flow ---
+@csrf_exempt
+def payment_confirm(request):
+    """Flow enviará un POST aquí cuando el cliente pague exitosamente"""
+    if request.method == 'POST':
+        # Flow nos envía un token para que verifiquemos el estado real del pago
+        token = request.POST.get('token')
+        
+        if token:
+            print(f"¡Pago recibido en Flow! Token: {token}")
+            # En el futuro, aquí usaremos el token para marcar la Order como 'Pagado' en la Base de Datos
+            return JsonResponse({'status': 'ok'}, status=200)
+            
+    return JsonResponse({'error': 'Método no permitido'}, status=400)
