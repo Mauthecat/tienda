@@ -174,7 +174,7 @@ const Header = ({ products = [] }) => {
                             <Link
                                 key={item.name}
                                 to={item.href}
-                                onClick={() => setIsMenuOpen(false)}
+                                onClick={() => setIsMenuOpen(false)} // <--- Esto es clave para que el menú se cierre al navegar
                                 className="block px-3 py-3 rounded-md text-base font-medium text-gray-800 hover:bg-[#feecd4] hover:text-indigo-900 border-b border-cyan-200/50 transition-colors"
                             >
                                 {item.name}
