@@ -15,15 +15,19 @@ export const AuthProvider = ({ children }) => {
     // Al recargar la página, revisamos si el usuario ya estaba logueado
     useEffect(() => {
         const token = localStorage.getItem('access_token');
-        if (token) {
+        const savedEmail = localStorage.getItem('user_email'); // NUEVO: Buscamos el correo guardado
+        
+        if (token && savedEmail) {
             try {
-                // Truco de magia: Desencriptamos el JWT para sacar el ID del usuario
                 const payload = JSON.parse(atob(token.split('.')[1]));
-                setUser({ id: payload.user_id });
+                // AHORA RESTAURAMOS AMBAS COSAS: ID y EMAIL
+                setUser({ id: payload.user_id, email: savedEmail });
             } catch (error) {
                 console.error("Token inválido", error);
                 logout();
             }
+        } else {
+            logout(); // Si falta algo, limpiamos por seguridad
         }
         setLoading(false);
     }, []);
@@ -32,15 +36,15 @@ export const AuthProvider = ({ children }) => {
     const login = async (email, password) => {
         try {
             const response = await axios.post(`${BASE_URL}/api/token/`, {
-                username: email, // Django requiere que se llame username
+                username: email, 
                 password: password
             });
 
-            // Guardamos las llaves maestras en el navegador
             localStorage.setItem('access_token', response.data.access);
             localStorage.setItem('refresh_token', response.data.refresh);
+            // NUEVO: Guardamos el correo en el navegador para recordarlo al abrir otra pestaña
+            localStorage.setItem('user_email', email);
 
-            // Actualizamos la App diciendo que sí hay alguien conectado
             const payload = JSON.parse(atob(response.data.access.split('.')[1]));
             setUser({ id: payload.user_id, email: email });
             return { success: true };
@@ -59,7 +63,6 @@ export const AuthProvider = ({ children }) => {
             });
             
             if (response.status === 201) {
-                // Si se registró bien, lo logueamos automáticamente para no hacerlo trabajar doble
                 return await login(email, password);
             }
         } catch (error) {
@@ -71,6 +74,7 @@ export const AuthProvider = ({ children }) => {
     const logout = () => {
         localStorage.removeItem('access_token');
         localStorage.removeItem('refresh_token');
+        localStorage.removeItem('user_email'); // NUEVO: Limpiamos el correo al salir
         setUser(null);
     };
 

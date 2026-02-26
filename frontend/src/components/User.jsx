@@ -35,16 +35,15 @@ const User = () => {
 
     // Traer todos los datos del usuario al cargar
     useEffect(() => {
-        if (user) {
+        // Aseguramos que 'user' y 'user.email' existan antes de llamar a Django
+        if (user && user.email) {
             const fetchData = async () => {
                 setLoadingData(true);
                 const BASE_URL = import.meta.env.MODE === 'production' ? 'https://tienda-backend-fn64.onrender.com' : 'http://127.0.0.1:8000';
                 try {
-                    // Traemos Historial
                     const resOrders = await axios.get(`${BASE_URL}/api/orders/`, { params: { email: user.email } });
                     setOrders(resOrders.data);
 
-                    // Traemos Favoritos (Solo los primeros 4 para el expositor)
                     const resFavs = await axios.get(`${BASE_URL}/api/favorites/`, { params: { email: user.email } });
                     const formattedFavs = resFavs.data.slice(0, 4).map(item => ({
                         ...item,
@@ -52,7 +51,6 @@ const User = () => {
                         imageUrl: item.image ? (item.image.startsWith('http') ? item.image : `${BASE_URL}${item.image}`) : logoImg,
                     }));
                     setFavoritesPreview(formattedFavs);
-
                 } catch (error) {
                     console.error("Error trayendo datos del usuario:", error);
                 }
@@ -73,7 +71,7 @@ const User = () => {
                 <div className="max-w-5xl w-full">
                     <div className="bg-white rounded-[2.5rem] shadow-xl p-8 md:p-10 animate-in fade-in zoom-in duration-300">
                         <div className="flex flex-col md:flex-row items-start gap-10">
-                            
+
                             {/* Panel Izquierdo: Datos de Usuario */}
                             <div className="w-full md:w-1/3 text-center md:border-r border-gray-100 md:pr-10 md:sticky top-24">
                                 <div className="w-24 h-24 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-orange-200">
@@ -81,14 +79,14 @@ const User = () => {
                                 </div>
                                 <h2 className="text-xl font-bold text-gray-900 mb-1">Tu Perfil</h2>
                                 <p className="text-gray-500 text-xs mb-8 break-all">{user.email}</p>
-                                
-                                <button 
+
+                                <button
                                     onClick={() => alert("Pronto habilitaremos esta sección para que actualices tu dirección y nombre.")}
                                     className="w-full flex items-center justify-center gap-2 p-3 bg-cyan-50 rounded-xl hover:bg-cyan-100 text-sm font-bold text-cyan-800 transition-colors mb-3 border border-cyan-100"
                                 >
                                     <Settings size={16} /> Ajustar Datos
                                 </button>
-                                
+
                                 <button onClick={() => { logout(); navigate('/'); }} className="w-full flex items-center justify-center gap-2 text-pink-600 text-sm font-bold py-3 hover:bg-pink-50 rounded-xl transition-colors border border-pink-100">
                                     <LogOut size={16} /> Cerrar Sesión
                                 </button>
@@ -96,7 +94,7 @@ const User = () => {
 
                             {/* Panel Derecho: Órdenes y Favoritos */}
                             <div className="w-full md:w-2/3 flex flex-col gap-10">
-                                
+
                                 {/* SECCIÓN ÓRDENES */}
                                 <div>
                                     <h3 className="text-lg font-bold text-gray-800 mb-6 uppercase tracking-wider flex items-center gap-2">
@@ -138,7 +136,7 @@ const User = () => {
                                             Ver todos
                                         </Link>
                                     </div>
-                                    
+
                                     {loadingData ? (
                                         <p className="text-sm text-gray-500">Cargando...</p>
                                     ) : favoritesPreview.length === 0 ? (
@@ -150,13 +148,13 @@ const User = () => {
                                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                                             {favoritesPreview.map((fav) => (
                                                 <div key={fav.id} className="bg-white rounded-xl p-3 border border-pink-50 shadow-sm flex flex-col group relative">
-                                                    
+
                                                     {/* IMAGEN CON CARRITO FLOTANTE */}
                                                     <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden relative">
                                                         <img src={fav.imageUrl} alt={fav.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                                                        
+
                                                         {/* BOTÓN CARRITO SOBRE LA IMAGEN */}
-                                                        <button 
+                                                        <button
                                                             onClick={(e) => {
                                                                 e.preventDefault();
                                                                 addToCart(fav);
