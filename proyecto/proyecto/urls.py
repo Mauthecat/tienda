@@ -1,6 +1,17 @@
 from django.contrib import admin
 from django.urls import path
-from core.views import get_products, api_home, register_user, create_payment, payment_confirm, payment_final_redirect, get_user_orders, track_order, get_favorites, toggle_favorite
+from core.views import (
+    get_products, 
+    api_home, 
+    register_user, 
+    create_payment, 
+    payment_confirm, 
+    payment_final_redirect, 
+    get_user_orders, 
+    track_order, 
+    get_favorites, 
+    toggle_favorite
+)
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework_simplejwt.views import (

@@ -23,6 +23,7 @@ import { AuthProvider } from './context/AuthContext';
 import User from './components/User';
 import CheckoutStatus from './components/CheckoutStatus';
 import Envios from './components/Envios';
+import Favoritos from './components/Favoritos';
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -139,6 +140,7 @@ function App() {
               element={<CheckoutStatus />}
             />
             <Route path="/envios" element={<Envios />} />
+            <Route path="/favoritos" element={<Favoritos />} />
           </Routes>
           
 
