@@ -2,6 +2,7 @@ import json
 from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
+from django.shortcuts import render, redirect
 from .models import Product
 import hmac
 import hashlib
@@ -99,7 +100,7 @@ def create_payment(request):
                 # urlConfirmation: La ruta oculta donde Flow le avisa a Django que el pago fue exitoso
                 "urlConfirmation": "https://tienda-backend-fn64.onrender.com/api/payment/confirm/", 
                 # urlReturn: A donde vuelve el cliente después de pagar
-                "urlReturn": "https://policromica.vercel.app/checkout/status", 
+                "urlReturn": "https://tienda-backend-fn64.onrender.com/api/payment/final-redirect/", 
             }
 
             # 4. Firmamos los parámetros (Seguridad estricta de Flow)
@@ -140,3 +141,25 @@ def payment_confirm(request):
             return JsonResponse({'status': 'ok'}, status=200)
             
     return JsonResponse({'error': 'Método no permitido'}, status=400)
+
+@csrf_exempt
+def payment_final_redirect(request):
+    """
+    Recibe el POST de Flow al terminar el pago.
+    Redirige al usuario a React usando GET para evitar errores de recarga.
+    """
+    if request.method == 'POST':
+        # Flow nos envía el token en el POST body
+        token = request.POST.get('token')
+        
+        # Construimos la URL de Vercel con el token como parámetro GET opcional
+        frontend_url = "https://policromica.vercel.app/checkout/status"
+        
+        if token:
+            # Mandamos al usuario a React con un GET limpio: /checkout/status?token=XXX
+            return redirect(f"{frontend_url}?token={token}")
+        
+        return redirect(frontend_url)
+
+    # Si por alguna razón intentan entrar por GET directo, los mandamos a la tienda
+    return redirect("https://policromica.vercel.app")
