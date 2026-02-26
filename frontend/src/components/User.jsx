@@ -33,19 +33,20 @@ const User = () => {
         }
     };
 
+    // Traer todos los datos del usuario al cargar
     useEffect(() => {
         if (user) {
             const fetchData = async () => {
                 setLoadingData(true);
                 const BASE_URL = import.meta.env.MODE === 'production' ? 'https://tienda-backend-fn64.onrender.com' : 'http://127.0.0.1:8000';
                 try {
-                    // Traemos Órdenes
+                    // Traemos Historial
                     const resOrders = await axios.get(`${BASE_URL}/api/orders/`, { params: { email: user.email } });
                     setOrders(resOrders.data);
 
-                    // Traemos Favoritos (Solo los últimos 3 para el expositor)
+                    // Traemos Favoritos (Solo los primeros 4 para el expositor)
                     const resFavs = await axios.get(`${BASE_URL}/api/favorites/`, { params: { email: user.email } });
-                    const formattedFavs = resFavs.data.slice(0, 3).map(item => ({
+                    const formattedFavs = resFavs.data.slice(0, 4).map(item => ({
                         ...item,
                         priceFormatted: new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(item.price),
                         imageUrl: item.image ? (item.image.startsWith('http') ? item.image : `${BASE_URL}${item.image}`) : logoImg,
@@ -63,11 +64,14 @@ const User = () => {
 
     if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-500">Cargando...</div>;
 
+    // ==========================================
+    // VISTA DE PERFIL: Historial + Favoritos
+    // ==========================================
     if (user) {
         return (
             <div className="min-h-screen bg-[#b3f3f5] py-12 px-4 flex justify-center items-start">
                 <div className="max-w-5xl w-full">
-                    <div className="bg-white rounded-[2.5rem] shadow-xl p-8 animate-in fade-in zoom-in duration-300">
+                    <div className="bg-white rounded-[2.5rem] shadow-xl p-8 md:p-10 animate-in fade-in zoom-in duration-300">
                         <div className="flex flex-col md:flex-row items-start gap-10">
                             
                             {/* Panel Izquierdo: Datos de Usuario */}
@@ -76,9 +80,12 @@ const User = () => {
                                     <UserIcon size={48} />
                                 </div>
                                 <h2 className="text-xl font-bold text-gray-900 mb-1">Tu Perfil</h2>
-                                <p className="text-gray-500 text-xs mb-6 break-all">{user.email}</p>
+                                <p className="text-gray-500 text-xs mb-8 break-all">{user.email}</p>
                                 
-                                <button className="w-full flex items-center justify-center gap-2 p-3 bg-gray-50 rounded-xl hover:bg-cyan-50 text-sm font-bold text-gray-700 transition-colors mb-3 border border-gray-100">
+                                <button 
+                                    onClick={() => alert("Pronto habilitaremos esta sección para que actualices tu dirección y nombre.")}
+                                    className="w-full flex items-center justify-center gap-2 p-3 bg-cyan-50 rounded-xl hover:bg-cyan-100 text-sm font-bold text-cyan-800 transition-colors mb-3 border border-cyan-100"
+                                >
                                     <Settings size={16} /> Ajustar Datos
                                 </button>
                                 
@@ -104,7 +111,7 @@ const User = () => {
                                     ) : (
                                         <div className="space-y-3 max-h-64 overflow-y-auto pr-2">
                                             {orders.map((order, index) => (
-                                                <div key={index} className="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex justify-between items-center">
+                                                <div key={index} className="bg-gray-50 p-4 rounded-2xl border border-gray-100 flex justify-between items-center hover:shadow-md transition-shadow">
                                                     <div>
                                                         <p className="font-bold text-gray-900">{order.order_number}</p>
                                                         <p className="text-xs text-gray-500">{order.date}</p>
@@ -121,13 +128,13 @@ const User = () => {
 
                                 <div className="w-full h-px bg-gray-100"></div>
 
-                                {/* SECCIÓN FAVORITOS (Expositor) */}
+                                {/* SECCIÓN FAVORITOS (Mini Expositor) */}
                                 <div>
                                     <div className="flex justify-between items-center mb-6">
                                         <h3 className="text-lg font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
                                             <Heart className="text-pink-500" fill="currentColor" /> Mis Favoritos
                                         </h3>
-                                        <Link to="/favoritos" className="text-xs text-indigo-600 font-bold hover:underline flex items-center">
+                                        <Link to="/favoritos" className="text-xs text-indigo-600 font-bold hover:underline">
                                             Ver todos
                                         </Link>
                                     </div>
@@ -137,25 +144,33 @@ const User = () => {
                                     ) : favoritesPreview.length === 0 ? (
                                         <div className="bg-gray-50 rounded-2xl p-6 text-center border border-gray-100">
                                             <p className="text-sm text-gray-500 mb-2">No tienes favoritos guardados.</p>
+                                            <Link to="/" className="text-xs text-pink-600 font-bold hover:underline">Ir a vitrinear</Link>
                                         </div>
                                     ) : (
-                                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                                             {favoritesPreview.map((fav) => (
-                                                <div key={fav.id} className="bg-white rounded-xl p-3 border border-pink-50 shadow-sm flex flex-col group">
-                                                    <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden">
+                                                <div key={fav.id} className="bg-white rounded-xl p-3 border border-pink-50 shadow-sm flex flex-col group relative">
+                                                    
+                                                    {/* IMAGEN CON CARRITO FLOTANTE */}
+                                                    <div className="aspect-square bg-gray-100 rounded-lg mb-3 overflow-hidden relative">
                                                         <img src={fav.imageUrl} alt={fav.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform" />
-                                                    </div>
-                                                    <h4 className="text-xs font-bold text-gray-800 line-clamp-1 mb-1">{fav.name}</h4>
-                                                    <div className="flex items-center justify-between mt-auto pt-2">
-                                                        <span className="text-sm font-black text-indigo-900">{fav.priceFormatted}</span>
+                                                        
+                                                        {/* BOTÓN CARRITO SOBRE LA IMAGEN */}
                                                         <button 
-                                                            onClick={() => addToCart(fav)}
+                                                            onClick={(e) => {
+                                                                e.preventDefault();
+                                                                addToCart(fav);
+                                                            }}
                                                             disabled={fav.stock === 0}
-                                                            className="p-1.5 bg-indigo-50 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-full transition-colors disabled:opacity-50"
+                                                            className="absolute bottom-2 right-2 p-2 bg-indigo-600/90 backdrop-blur text-white rounded-full hover:bg-indigo-700 transition-all hover:scale-110 shadow-md disabled:opacity-50 disabled:bg-gray-400"
+                                                            title={fav.stock === 0 ? "Sin stock" : "Añadir al carrito"}
                                                         >
                                                             <ShoppingCart size={14} />
                                                         </button>
                                                     </div>
+
+                                                    <h4 className="text-[11px] font-bold text-gray-800 line-clamp-1 mb-1">{fav.name}</h4>
+                                                    <span className="text-xs font-black text-pink-500">{fav.priceFormatted}</span>
                                                 </div>
                                             ))}
                                         </div>
@@ -170,11 +185,12 @@ const User = () => {
         );
     }
 
+    // ==========================================
+    // VISTA DE LOGIN (El formulario original)
+    // ==========================================
     return (
-        /* ... TU FORMULARIO DE LOGIN EXACTAMENTE IGUAL QUE ANTES ... */
         <div className="min-h-screen bg-[#b3f3f5] py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
             <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-xl border border-gray-100 p-8 animate-in zoom-in-95 duration-300">
-                
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#feecd4] text-orange-500 mb-4 shadow-sm border border-orange-100">
                         {isLoginView ? <LogIn size={32} /> : <UserPlus size={32} />}
