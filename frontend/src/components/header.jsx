@@ -16,8 +16,8 @@ const Header = ({ products = [] }) => {
     ];
 
     // LÓGICA DE BÚSQUEDA A PRUEBA DE FALLOS (Ignora mayúsculas y tildes)
-    const searchResults = searchTerm.trim() === '' 
-        ? [] 
+    const searchResults = searchTerm.trim() === ''
+        ? []
         : products.filter(product => {
             if (!product || !product.name) return false;
             // Normalizamos para quitar tildes y dejar todo en minúsculas
@@ -60,16 +60,16 @@ const Header = ({ products = [] }) => {
 
                         {/* BUSCADOR DESKTOP MEJORADO */}
                         <div className="relative group ml-2">
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                                 /* EL TRUCO: Aquí veremos si está recibiendo los productos */
-                                placeholder={`Buscar en ${products.length} productos...`} 
+                                placeholder={`Buscar en ${products.length} productos...`}
                                 className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 w-56 transition-all duration-300 focus:w-72 shadow-sm font-sans"
                             />
                             <Search size={16} className="absolute left-3.5 top-2.5 text-gray-400" />
-                            
+
                             {/* RESULTADOS DE BÚSQUEDA DESKTOP */}
                             {searchTerm && (
                                 <div className="absolute top-full mt-2 w-full bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
@@ -77,7 +77,7 @@ const Header = ({ products = [] }) => {
                                         <ul className="max-h-72 overflow-y-auto">
                                             {searchResults.map(product => (
                                                 <li key={product.id}>
-                                                    <Link 
+                                                    <Link
                                                         to={`/producto/${product.id}`}
                                                         onClick={() => setSearchTerm('')}
                                                         className="flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
@@ -100,9 +100,9 @@ const Header = ({ products = [] }) => {
                     </div>
 
                     <div className="flex items-center space-x-2 md:space-x-4 z-10">
-                        <button className="hidden md:block p-2 text-gray-800 hover:text-indigo-600 transition-transform hover:scale-110">
+                        <Link to="/perfil" className="hidden md:block p-2 text-gray-800 hover:text-indigo-600 transition-transform hover:scale-110">
                             <User size={24} />
-                        </button>
+                        </Link>
                         <button className="hidden md:block p-2 text-gray-800 hover:text-pink-600 transition-transform hover:scale-110">
                             <Heart size={24} />
                         </button>
@@ -126,18 +126,18 @@ const Header = ({ products = [] }) => {
             {isMenuOpen && (
                 <div className="md:hidden absolute top-16 left-0 w-full bg-[#b3f3f5] border-t border-cyan-200 shadow-lg animate-in slide-in-from-top-5">
                     <div className="px-4 pt-4 pb-6 space-y-4">
-                        
+
                         {/* BUSCADOR MÓVIL MEJORADO */}
                         <div className="relative w-full">
-                            <input 
-                                type="text" 
+                            <input
+                                type="text"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder={`Buscar en ${products.length} productos...`} 
+                                placeholder={`Buscar en ${products.length} productos...`}
                                 className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 shadow-sm"
                             />
                             <Search size={18} className="absolute left-3.5 top-3.5 text-gray-400" />
-                            
+
                             {/* RESULTADOS DE BÚSQUEDA MÓVIL */}
                             {searchTerm && (
                                 <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
@@ -145,7 +145,7 @@ const Header = ({ products = [] }) => {
                                         <ul className="max-h-60 overflow-y-auto">
                                             {searchResults.map(product => (
                                                 <li key={product.id}>
-                                                    <Link 
+                                                    <Link
                                                         to={`/producto/${product.id}`}
                                                         onClick={() => {
                                                             setSearchTerm('');
