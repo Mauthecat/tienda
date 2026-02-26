@@ -18,6 +18,7 @@ import arosBanner from './assets/portada_aros.png';
 import cortadoresBanner from './assets/portada_cortadores.jpeg';
 import CartDrawer from './components/CartDrawer';
 import Checkout from './components/Checkout'
+import Contact from './components/Contact';
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -119,6 +120,10 @@ function App() {
           <Route
             path="/checkout"
             element={<Checkout />}
+          />
+          <Route
+            path="/contacto"
+            element={<Contact />}
           />
         </Routes>
 
