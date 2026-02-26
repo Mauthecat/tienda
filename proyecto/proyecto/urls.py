@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.urls import path
-from core.views import get_products, api_home, register_user, create_payment, payment_confirm, payment_final_redirect
+from core.views import get_products, api_home, register_user, create_payment, payment_confirm, payment_final_redirect, get_user_orders, track_order
 from django.conf import settings
 from django.conf.urls.static import static
 from rest_framework_simplejwt.views import (
@@ -24,6 +24,8 @@ urlpatterns = [
     path('api/payment/create/', create_payment, name='create_payment'),
     path('api/payment/confirm/', payment_confirm, name='payment_confirm'),
     path('api/payment/final-redirect/', payment_final_redirect, name='payment_final_redirect'),
+    path('api/orders/', get_user_orders, name='get_user_orders'),
+    path('api/track/', track_order, name='track_order'),
 ]
 
 if settings.DEBUG:

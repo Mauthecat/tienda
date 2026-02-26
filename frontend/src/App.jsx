@@ -22,6 +22,7 @@ import Contact from './components/Contact';
 import { AuthProvider } from './context/AuthContext';
 import User from './components/User';
 import CheckoutStatus from './components/CheckoutStatus';
+import Envios from './components/Envios';
 
 function App() {
   const [products, setProducts] = useState([]);
@@ -138,6 +139,7 @@ function App() {
               element={<CheckoutStatus />}
             />
           </Routes>
+          <Route path="/envios" element={<Envios />} />
 
           <Footer />
         </div>
