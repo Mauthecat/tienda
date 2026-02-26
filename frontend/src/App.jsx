@@ -60,7 +60,7 @@ function App() {
   return (
     <CartProvider>
       <div className="min-h-screen bg-[#b3f3f5] flex flex-col w-full overflow-x-hidden">
-        <Header />
+        <Header products={products} />
         <CartDrawer /> {/* <-- NUEVO: Agregamos el cajón del carrito aquí */}
 
         <Routes>
