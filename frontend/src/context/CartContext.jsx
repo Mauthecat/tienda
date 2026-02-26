@@ -18,26 +18,45 @@ export const CartProvider = ({ children }) => {
     const addToCart = (product, quantity = 1) => {
         setCart(prevCart => {
             const existingProduct = prevCart.find(item => item.id === product.id);
+            
             if (existingProduct) {
+                // VERIFICACIÓN DE STOCK: Si al sumar se pasa del stock, bloqueamos
+                if (existingProduct.quantity + quantity > product.stock) {
+                    alert(`¡Lo sentimos! Solo nos quedan ${product.stock} unidades de ${product.name} en stock.`);
+                    return prevCart;
+                }
                 return prevCart.map(item =>
                     item.id === product.id ? { ...item, quantity: item.quantity + quantity } : item
                 );
             }
+
+            // VERIFICACIÓN DE STOCK PARA PRODUCTOS NUEVOS
+            if (quantity > product.stock) {
+                alert(`¡Lo sentimos! Solo nos quedan ${product.stock} unidades de ${product.name} en stock.`);
+                return prevCart;
+            }
+
             return [...prevCart, { ...product, quantity }];
         });
         setIsCartOpen(true); 
     };
 
-    // NUEVO: Función para sumar o restar cantidad
     const updateQuantity = (productId, amount) => {
         setCart(prevCart => {
             const updatedCart = prevCart.map(item => {
                 if (item.id === productId) {
-                    return { ...item, quantity: item.quantity + amount };
+                    const newQuantity = item.quantity + amount;
+                    
+                    // VERIFICACIÓN DE STOCK EN EL BOTÓN "+" DEL CARRITO
+                    if (amount > 0 && newQuantity > item.stock) {
+                        alert(`Has alcanzado el límite de stock disponible para ${item.name}.`);
+                        return item;
+                    }
+                    
+                    return { ...item, quantity: newQuantity };
                 }
                 return item;
             });
-            // Filtramos para eliminar los que lleguen a 0
             return updatedCart.filter(item => item.quantity > 0);
         });
     };
@@ -58,7 +77,7 @@ export const CartProvider = ({ children }) => {
             cart, 
             addToCart, 
             removeFromCart, 
-            updateQuantity, // Pasamos la nueva función aquí
+            updateQuantity,
             totalItems, 
             totalPrice, 
             isCartOpen, 

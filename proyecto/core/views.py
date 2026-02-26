@@ -24,6 +24,7 @@ def get_products(request):
             'id': product.id,
             'name': product.name,
             'price': float(product.price),
+            'stock': product.stock,
             'category__name': product.category.name if product.category else "Sin categoría",
             'main_image': image_url,
             'all_images': all_images,
