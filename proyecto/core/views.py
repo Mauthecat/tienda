@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
-from .models import Product, Order, OrderItem
+from .models import Product, Order, OrderItem, Favorite
 import hmac
 import hashlib
 import uuid
@@ -192,3 +192,57 @@ def track_order(request):
         })
     except (Order.DoesNotExist, ValueError):
         return JsonResponse({'success': False, 'error': 'Pedido no encontrado'})
+    
+@csrf_exempt
+def get_favorites(request):
+    """Obtiene los favoritos de un usuario"""
+    email = request.GET.get('email')
+    if not email:
+        return JsonResponse([], safe=False)
+    
+    favorites = Favorite.objects.filter(user__email=email).select_related('product')
+    products_list = []
+    
+    for fav in favorites:
+        product = fav.product
+        main_image_obj = product.images.filter(is_main=True).first()
+        if not main_image_obj:
+            main_image_obj = product.images.first()
+            
+        image_url = main_image_obj.image.url if main_image_obj else None
+        
+        products_list.append({
+            'id': product.id,
+            'name': product.name,
+            'price': float(product.price),
+            'stock': product.stock,
+            'image': image_url, # Lo enviamos directo para facilitar la lectura
+        })
+
+    return JsonResponse(products_list, safe=False)
+
+@csrf_exempt
+def toggle_favorite(request):
+    """Agrega o quita un producto de favoritos (Interruptor)"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            product_id = data.get('product_id')
+            
+            if not email or not product_id:
+                return JsonResponse({'error': 'Faltan datos'}, status=400)
+
+            user = User.objects.get(email=email)
+            product = Product.objects.get(id=product_id)
+            
+            fav, created = Favorite.objects.get_or_create(user=user, product=product)
+            
+            if not created:
+                fav.delete() # Si ya estaba en favoritos, lo quitamos
+                return JsonResponse({'status': 'removed'}, status=200)
+                
+            return JsonResponse({'status': 'added'}, status=201)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    return JsonResponse({'error': 'Método no permitido'}, status=405)

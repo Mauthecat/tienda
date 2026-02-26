@@ -33,8 +33,8 @@ const Header = ({ products = [] }) => {
 
                     {/* BOTÓN MENÚ MÓVIL */}
                     <div className="flex md:hidden">
-                        <button 
-                            onClick={() => setIsMenuOpen(!isMenuOpen)} 
+                        <button
+                            onClick={() => setIsMenuOpen(!isMenuOpen)}
                             className="text-gray-600 hover:text-indigo-600 p-2 relative z-[110]"
                             aria-label="Abrir menú"
                         >
@@ -107,17 +107,17 @@ const Header = ({ products = [] }) => {
 
                     {/* ICONOS DE ACCIÓN */}
                     <div className="flex items-center space-x-2 md:space-x-4 relative z-[110]">
-                        <Link 
-                            to="/perfil" 
+                        <Link
+                            to="/perfil"
                             className="hidden md:block p-2 text-gray-800 hover:text-indigo-600 transition-transform hover:scale-110 relative"
                             title="Mi Cuenta"
                         >
                             <User size={24} />
                         </Link>
-                        
-                        <button className="hidden md:block p-2 text-gray-800 hover:text-pink-600 transition-transform hover:scale-110">
+
+                        <Link to="/favoritos" className="hidden md:block p-2 text-gray-800 hover:text-pink-600 transition-transform hover:scale-110">
                             <Heart size={24} />
-                        </button>
+                        </Link>
 
                         <button
                             onClick={() => setIsCartOpen(true)}
@@ -189,11 +189,10 @@ const Header = ({ products = [] }) => {
                                 key={item.name}
                                 to={item.href}
                                 onClick={() => setIsMenuOpen(false)}
-                                className={`block px-3 py-3 rounded-md text-base font-medium border-b border-cyan-200/50 transition-colors ${
-                                    item.href === '/perfil' 
-                                    ? 'bg-white text-indigo-600 font-bold shadow-sm mb-2' 
-                                    : 'text-gray-800 hover:bg-[#feecd4]'
-                                }`}
+                                className={`block px-3 py-3 rounded-md text-base font-medium border-b border-cyan-200/50 transition-colors ${item.href === '/perfil'
+                                        ? 'bg-white text-indigo-600 font-bold shadow-sm mb-2'
+                                        : 'text-gray-800 hover:bg-[#feecd4]'
+                                    }`}
                             >
                                 {item.name}
                             </Link>
