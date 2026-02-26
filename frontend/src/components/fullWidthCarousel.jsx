@@ -81,7 +81,7 @@ const FullWidthCarousel = ({ title, products }) => {
                                 {/* NUEVO BOTÓN CÁPSULA: Ver / Añadir al carro */}
                                 <div className="mt-3 flex items-center justify-center w-full bg-[#feecd4] rounded-full overflow-hidden shadow-sm border border-[#f5d7ce]">
                                     <span className="flex-1 text-center py-2 text-cyan-800 text-[11px] md:text-xs font-bold hover:bg-white hover:text-indigo-600 transition-colors">
-                                        Ver
+                                        Ver Detalles
                                     </span>
                                     
                                     {/* Separador diagonal minimalista */}

@@ -49,7 +49,7 @@ function App() {
 
   const arosProducts = products.filter(p => p.category__name === 'Aros');
   const cortadoresProducts = products.filter(p => p.category__name === 'Cortadores');
-  const newArrivals = products.slice(-5);
+  const newArrivals = products.slice(-10);
 
   const heroSlides = [
     { image: logoImg, link: '/', title: 'Destacados' },
