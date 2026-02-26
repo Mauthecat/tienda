@@ -1,9 +1,44 @@
-import { Heart } from 'lucide-react'; // Quitamos ShoppingCart y ChevronRight
+import { useRef, useState } from 'react';
+import { Heart } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext'; // IMPORTAMOS EL CONTEXTO DEL CARRITO
+import { useCart } from '../context/CartContext';
 
 const CategorySection = ({ title, buttonText, bannerImage, products, isReversed }) => {
-  const { addToCart } = useCart(); // Extraemos la función para añadir al carro
+  const { addToCart } = useCart();
+  
+  // REFERENCIAS Y ESTADOS PARA EL ARRASTRE (DRAG TO SCROLL)
+  const carouselRef = useRef(null);
+  const [isDragging, setIsDragging] = useState(false);
+  
+  let isDown = useRef(false);
+  let startX = useRef(0);
+  let scrollLeft = useRef(0);
+
+  const handleMouseDown = (e) => {
+    isDown.current = true;
+    startX.current = e.pageX - carouselRef.current.offsetLeft;
+    scrollLeft.current = carouselRef.current.scrollLeft;
+  };
+
+  const handleMouseLeave = () => {
+    isDown.current = false;
+    setIsDragging(false);
+  };
+
+  const handleMouseUp = () => {
+    isDown.current = false;
+    // Retraso de 50ms para asegurar que no dispare el click al soltar el ratón
+    setTimeout(() => setIsDragging(false), 50);
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDown.current) return;
+    e.preventDefault();
+    if (!isDragging) setIsDragging(true); // Marcamos que está arrastrando
+    const x = e.pageX - carouselRef.current.offsetLeft;
+    const walk = (x - startX.current) * 2; // Multiplicador de velocidad de arrastre
+    carouselRef.current.scrollLeft = scrollLeft.current - walk;
+  };
 
   return (
     <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
@@ -34,64 +69,69 @@ const CategorySection = ({ title, buttonText, bannerImage, products, isReversed 
         </div>
 
         {/* CARRUSEL DE PRODUCTOS */}
-        <div className="w-full md:w-2/3 flex flex-col justify-center">
+        <div className="w-full md:w-2/3 flex flex-col justify-center overflow-hidden">
           
-          {/* Se aplicó scrollbar-hide y snap-mandatory para el deslizamiento magnético */}
           <div 
-            className="flex overflow-x-auto gap-4 pb-4 pt-2 px-2 snap-x snap-mandatory scrollbar-hide" 
+            ref={carouselRef}
+            onMouseDown={handleMouseDown}
+            onMouseLeave={handleMouseLeave}
+            onMouseUp={handleMouseUp}
+            onMouseMove={handleMouseMove}
+            // Agregamos cursor-grab (mano abierta) y active:cursor-grabbing (mano cerrada)
+            className="flex overflow-x-auto gap-4 pb-4 pt-2 px-2 snap-x snap-mandatory scrollbar-hide cursor-grab active:cursor-grabbing" 
             style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
           >
             <style>{`
-                .scrollbar-hide::-webkit-scrollbar {
-                    display: none;
-                }
+                .scrollbar-hide::-webkit-scrollbar { display: none; }
             `}</style>
             
             {products.map((product) => (
               <Link 
                 to={`/producto/${product.id}`} 
                 key={product.id} 
-                // Se agregó flex-shrink-0 y se redujo el padding inferior (pb-2)
-                className="block flex-shrink-0 min-w-[200px] md:min-w-[230px] bg-[#feecd4] rounded-2xl shadow-sm hover:shadow-xl transition-all p-3 pb-2 snap-start snap-always border border-orange-100 flex flex-col justify-between group cursor-pointer"
+                onClick={(e) => {
+                    // Si el usuario estaba arrastrando, evitamos que entre al producto
+                    if (isDragging) e.preventDefault(); 
+                }}
+                className="block flex-shrink-0 min-w-[200px] md:min-w-[230px] bg-[#feecd4] rounded-2xl shadow-sm hover:shadow-xl transition-all p-3 pb-2 snap-start snap-always border border-orange-100 flex flex-col justify-between group select-none"
               >
                 
-                <div className="relative h-48 bg-gray-100 rounded-xl mb-3 overflow-hidden">
+                <div className="relative h-48 bg-gray-100 rounded-xl mb-3 overflow-hidden pointer-events-none">
                    <img 
                       src={product.image} 
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                       alt={product.name} 
+                      draggable="false" // Evita el fantasma de imagen al arrastrar
                    />
-                   {/* SE ELIMINÓ EL BOTÓN DEL CARRITO FLOTANTE AQUÍ */}
                 </div>
 
-                <div className="flex flex-col flex-grow justify-between">
+                <div className="flex flex-col flex-grow justify-between pointer-events-none">
                   <div>
                     <h3 className="font-semibold text-gray-700 text-sm leading-tight mb-1 line-clamp-2">{product.name}</h3>
                     <div className="flex justify-between items-center mt-1">
                       <span className="text-pink-600 font-bold text-lg">{product.price}</span>
-                      {/* SE ELIMINÓ LA ETIQUETA DE STOCK AQUÍ */}
                     </div>
                   </div>
+                </div>
                   
-                  {/* NUEVO BOTÓN CÁPSULA: Ver Detalles / Añadir al carro */}
-                  <div className="mt-3 flex items-center justify-center w-full bg-white rounded-full overflow-hidden shadow-sm border border-orange-100">
-                      <span className="flex-1 text-center py-2 text-cyan-800 text-[11px] md:text-xs font-bold hover:bg-orange-50 hover:text-indigo-600 transition-colors">
-                          Ver Detalles
-                      </span>
-                      
-                      {/* Separador diagonal minimalista */}
-                      <span className="text-orange-300 font-light text-xs select-none">/</span>
-                      
-                      <button
-                          onClick={(e) => {
-                              e.preventDefault(); // Evita navegar a la página del producto al hacer clic aquí
-                              addToCart(product); // Llama a la lógica del carrito fantasma
-                          }}
-                          className="flex-1 text-center py-2 text-pink-600 text-[11px] md:text-xs font-bold hover:bg-orange-50 hover:text-pink-700 transition-colors"
-                      >
-                          Añadir al carro
-                      </button>
-                  </div>
+                {/* BOTÓN CÁPSULA (Lo reactivamos para clics aislándolo del arrastre) */}
+                <div className="mt-3 flex items-center justify-center w-full bg-white rounded-full overflow-hidden shadow-sm border border-orange-100 pointer-events-auto">
+                    <span className="flex-1 text-center py-2 text-cyan-800 text-[11px] md:text-xs font-bold hover:bg-orange-50 hover:text-indigo-600 transition-colors">
+                        Ver Detalles
+                    </span>
+                    
+                    <span className="text-orange-300 font-light text-xs select-none">/</span>
+                    
+                    <button
+                        onClick={(e) => {
+                            e.preventDefault(); 
+                            if (isDragging) return; // No agrega si fue arrastre
+                            addToCart(product); 
+                        }}
+                        className="flex-1 text-center py-2 text-pink-600 text-[11px] md:text-xs font-bold hover:bg-orange-50 hover:text-pink-700 transition-colors cursor-pointer z-10"
+                    >
+                        Añadir al carro
+                    </button>
                 </div>
 
               </Link>
