@@ -13,7 +13,7 @@ const Header = ({ products = [] }) => {
         { name: 'Inicio', href: '/' },
         { name: 'Aros', href: '/aros' },
         { name: 'Cortadores', href: '/cortadores' },
-        { name: 'Mi Cuenta', href: '/perfil' },
+
     ];
 
     // LÓGICA DE BÚSQUEDA
