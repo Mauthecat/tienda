@@ -5,7 +5,7 @@ import { Routes, Route } from 'react-router-dom';
 // IMPORTAMOS EL CEREBRO DEL CARRITO
 import { CartProvider } from './context/CartContext';
 
-import Header from './components/header';
+import Header from './components/Header';
 import HeroCarousel from './components/heroCarousel';
 import CategorySection from './components/categorySection';
 import FullWidthCarousel from './components/fullWidthCarousel';
