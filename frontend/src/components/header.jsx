@@ -4,12 +4,9 @@ import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import logoImg from '../assets/logo.jpeg';
 
-// AHORA RECIBIMOS LOS PRODUCTOS COMO PARÁMETRO
 const Header = ({ products = [] }) => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const { totalItems, setIsCartOpen } = useCart();
-    
-    // Estado para lo que escribe el usuario
     const [searchTerm, setSearchTerm] = useState('');
 
     const navigation = [
@@ -18,12 +15,16 @@ const Header = ({ products = [] }) => {
         { name: 'Cortadores', href: '/cortadores' },
     ];
 
-    // LÓGICA DE BÚSQUEDA: Filtra los productos según lo que se escriba
+    // LÓGICA DE BÚSQUEDA A PRUEBA DE FALLOS (Ignora mayúsculas y tildes)
     const searchResults = searchTerm.trim() === '' 
         ? [] 
-        : products.filter(product => 
-            product.name.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        : products.filter(product => {
+            if (!product || !product.name) return false;
+            // Normalizamos para quitar tildes y dejar todo en minúsculas
+            const nameNormalizado = product.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            const terminoNormalizado = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+            return nameNormalizado.includes(terminoNormalizado);
+        });
 
     return (
         <header className="bg-[#b3f3f5] shadow-sm sticky top-0 z-50 w-full transition-colors duration-300">
@@ -63,8 +64,9 @@ const Header = ({ products = [] }) => {
                                 type="text" 
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Buscar productos..." 
-                                className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 w-48 transition-all duration-300 focus:w-72 shadow-sm font-sans"
+                                /* EL TRUCO: Aquí veremos si está recibiendo los productos */
+                                placeholder={`Buscar en ${products.length} productos...`} 
+                                className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 w-56 transition-all duration-300 focus:w-72 shadow-sm font-sans"
                             />
                             <Search size={16} className="absolute left-3.5 top-2.5 text-gray-400" />
                             
@@ -77,7 +79,7 @@ const Header = ({ products = [] }) => {
                                                 <li key={product.id}>
                                                     <Link 
                                                         to={`/producto/${product.id}`}
-                                                        onClick={() => setSearchTerm('')} // Cierra el buscador al hacer clic
+                                                        onClick={() => setSearchTerm('')}
                                                         className="flex items-center gap-3 p-3 hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0"
                                                     >
                                                         <img src={product.image} alt={product.name} className="w-10 h-10 rounded-lg object-cover bg-gray-100" />
@@ -131,7 +133,7 @@ const Header = ({ products = [] }) => {
                                 type="text" 
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder="Buscar productos..." 
+                                placeholder={`Buscar en ${products.length} productos...`} 
                                 className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 shadow-sm"
                             />
                             <Search size={18} className="absolute left-3.5 top-3.5 text-gray-400" />
@@ -147,7 +149,7 @@ const Header = ({ products = [] }) => {
                                                         to={`/producto/${product.id}`}
                                                         onClick={() => {
                                                             setSearchTerm('');
-                                                            setIsMenuOpen(false); // Cierra todo al elegir
+                                                            setIsMenuOpen(false);
                                                         }}
                                                         className="flex items-center gap-3 p-3 hover:bg-gray-50 border-b border-gray-50"
                                                     >
