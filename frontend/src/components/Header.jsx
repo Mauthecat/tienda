@@ -13,7 +13,6 @@ const Header = ({ products = [] }) => {
         { name: 'Inicio', href: '/' },
         { name: 'Aros', href: '/aros' },
         { name: 'Cortadores', href: '/cortadores' },
-
     ];
 
     // LÓGICA DE BÚSQUEDA
@@ -63,7 +62,7 @@ const Header = ({ products = [] }) => {
                             ))}
                         </nav>
 
-                        {/* BUSCADOR */}
+                        {/* BUSCADOR DESKTOP */}
                         <div className="relative group ml-2">
                             <input
                                 type="text"
@@ -105,7 +104,7 @@ const Header = ({ products = [] }) => {
                         </div>
                     </div>
 
-                    {/* ICONOS DE ACCIÓN */}
+                    {/* ICONOS DE ACCIÓN DESKTOP (Carrito siempre visible) */}
                     <div className="flex items-center space-x-2 md:space-x-4 relative z-[110]">
                         <Link
                             to="/perfil"
@@ -184,19 +183,40 @@ const Header = ({ products = [] }) => {
                         </div>
 
                         {/* LINKS DE NAVEGACIÓN MÓVIL */}
-                        {navigation.map((item) => (
+                        <nav className="flex flex-col space-y-1 pb-4 border-b border-cyan-200/50">
+                            {navigation.map((item) => (
+                                <Link
+                                    key={item.name}
+                                    to={item.href}
+                                    onClick={() => setIsMenuOpen(false)}
+                                    className="block px-3 py-3 rounded-xl text-base font-medium text-gray-800 hover:bg-white hover:text-indigo-600 transition-colors"
+                                >
+                                    {item.name}
+                                </Link>
+                            ))}
+                        </nav>
+
+                        {/* ACCIONES DE USUARIO MÓVIL */}
+                        <div className="flex gap-3 pt-2">
                             <Link
-                                key={item.name}
-                                to={item.href}
+                                to="/perfil"
                                 onClick={() => setIsMenuOpen(false)}
-                                className={`block px-3 py-3 rounded-md text-base font-medium border-b border-cyan-200/50 transition-colors ${item.href === '/perfil'
-                                        ? 'bg-white text-indigo-600 font-bold shadow-sm mb-2'
-                                        : 'text-gray-800 hover:bg-[#feecd4]'
-                                    }`}
+                                className="flex-1 bg-white flex items-center justify-center gap-2 py-3 rounded-xl shadow-sm border border-gray-100 text-sm font-bold text-indigo-600 hover:bg-indigo-50 transition-colors"
                             >
-                                {item.name}
+                                <User size={18} />
+                                Mi Perfil
                             </Link>
-                        ))}
+                            
+                            <Link
+                                to="/favoritos"
+                                onClick={() => setIsMenuOpen(false)}
+                                className="flex-1 bg-white flex items-center justify-center gap-2 py-3 rounded-xl shadow-sm border border-gray-100 text-sm font-bold text-pink-600 hover:bg-pink-50 transition-colors"
+                            >
+                                <Heart size={18} />
+                                Favoritos
+                            </Link>
+                        </div>
+
                     </div>
                 </div>
             )}
