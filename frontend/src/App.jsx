@@ -138,8 +138,9 @@ function App() {
               path="/checkout/status"
               element={<CheckoutStatus />}
             />
+            <Route path="/envios" element={<Envios />} />
           </Routes>
-          <Route path="/envios" element={<Envios />} />
+          
 
           <Footer />
         </div>
