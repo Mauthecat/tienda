@@ -12,13 +12,14 @@ import FullWidthCarousel from './components/fullWidthCarousel';
 import InstagramFeed from './components/instagramFeed';
 import Footer from './components/footer';
 import ProductPage from './components/ProductPage';
-import ProductDetail from './components/ProductDetail'; 
+import ProductDetail from './components/ProductDetail';
 import logoImg from './assets/logo.jpeg';
 import arosBanner from './assets/portada_aros.png';
 import cortadoresBanner from './assets/portada_cortadores.jpeg';
 import CartDrawer from './components/CartDrawer';
 import Checkout from './components/Checkout';
 import Contact from './components/Contact';
+import { AuthProvider } from './context/AuthContext';
 import User from './components/User';
 
 function App() {
@@ -61,80 +62,82 @@ function App() {
   ];
 
   return (
-    <CartProvider>
-      <div className="min-h-screen bg-[#b3f3f5] flex flex-col w-full overflow-x-hidden">
-        <Header products={products} />
-        <CartDrawer /> {/* <-- NUEVO: Agregamos el cajón del carrito aquí */}
+    <AuthProvider>
+      <CartProvider>
+        <div className="min-h-screen bg-[#b3f3f5] flex flex-col w-full overflow-x-hidden">
+          <Header products={products} />
+          <CartDrawer /> {/* <-- NUEVO: Agregamos el cajón del carrito aquí */}
 
-        <Routes>
-          <Route path="/" element={
-            <>
-              <HeroCarousel slides={heroSlides} />
-              <FullWidthCarousel title="Novedades de la Semana" products={newArrivals} />
-              <main className="pb-10 flex-grow">
-                <CategorySection
-                  title="Nuestros Aritos"
-                  buttonText="Ver Aritos"
-                  bannerImage={arosBanner}
+          <Routes>
+            <Route path="/" element={
+              <>
+                <HeroCarousel slides={heroSlides} />
+                <FullWidthCarousel title="Novedades de la Semana" products={newArrivals} />
+                <main className="pb-10 flex-grow">
+                  <CategorySection
+                    title="Nuestros Aritos"
+                    buttonText="Ver Aritos"
+                    bannerImage={arosBanner}
+                    products={arosProducts}
+                    isReversed={false}
+                  />
+                  <div className="w-full h-px bg-cyan-900/10 max-w-7xl mx-auto my-8"></div>
+                  <CategorySection
+                    title="Cortadores Exclusivos"
+                    buttonText="Ver Todos"
+                    bannerImage={cortadoresBanner}
+                    products={cortadoresProducts}
+                    isReversed={true}
+                  />
+                </main>
+                <InstagramFeed />
+              </>
+            } />
+
+            <Route
+              path="/aros"
+              element={
+                <ProductPage
+                  title="Colección de Aros"
                   products={arosProducts}
-                  isReversed={false}
+                  bannerImage={arosBanner}
                 />
-                <div className="w-full h-px bg-cyan-900/10 max-w-7xl mx-auto my-8"></div>
-                <CategorySection
-                  title="Cortadores Exclusivos"
-                  buttonText="Ver Todos"
-                  bannerImage={cortadoresBanner}
+              }
+            />
+
+            <Route
+              path="/cortadores"
+              element={
+                <ProductPage
+                  title="Cortadores"
                   products={cortadoresProducts}
-                  isReversed={true}
+                  bannerImage={cortadoresBanner}
                 />
-              </main>
-              <InstagramFeed />
-            </>
-          } />
+              }
+            />
 
-          <Route
-            path="/aros"
-            element={
-              <ProductPage
-                title="Colección de Aros"
-                products={arosProducts}
-                bannerImage={arosBanner}
-              />
-            }
-          />
+            <Route
+              path="/producto/:id"
+              element={<ProductDetail products={products} />}
+            />
+            <Route
+              path="/checkout"
+              element={<Checkout />}
+            />
+            <Route
+              path="/contacto"
+              element={<Contact />}
+            />
+            <Route
+              path="/perfil"
+              element={<User />}
+            />
+          </Routes>
 
-          <Route
-            path="/cortadores"
-            element={
-              <ProductPage
-                title="Cortadores"
-                products={cortadoresProducts}
-                bannerImage={cortadoresBanner}
-              />
-            }
-          />
-
-          <Route
-            path="/producto/:id"
-            element={<ProductDetail products={products} />}
-          />
-          <Route
-            path="/checkout"
-            element={<Checkout />}
-          />
-          <Route
-            path="/contacto"
-            element={<Contact />}
-          />
-          <Route
-            path="/perfil"
-            element={<User />}
-          />
-        </Routes>
-
-        <Footer />
-      </div>
-    </CartProvider>
+          <Footer />
+        </div>
+      </CartProvider>
+    </AuthProvider>
   )
 }
 

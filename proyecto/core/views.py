@@ -1,19 +1,22 @@
+import json
 from django.http import JsonResponse
+from django.contrib.auth import get_user_model
+from django.views.decorators.csrf import csrf_exempt
 from .models import Product
 
-# --- Función 1: Bienvenida (La que te faltaba) ---
+# Obtenemos tu modelo de Usuario personalizado
+User = get_user_model()
+
+# --- Función 1: Bienvenida ---
 def api_home(request):
     return JsonResponse({"mensaje": "¡El Backend está vivo!"})
 
-# --- Función 2: Productos (La que arreglamos antes) ---
+# --- Función 2: Productos ---
 def get_products(request):
-    # Obtenemos solo los productos activos
     products_queryset = Product.objects.filter(is_active=True)
-    
     products_list = []
     
     for product in products_queryset:
-        # Lógica para sacar la imagen principal
         main_image_obj = product.images.filter(is_main=True).first()
         if not main_image_obj:
             main_image_obj = product.images.first()
@@ -32,3 +35,31 @@ def get_products(request):
         })
 
     return JsonResponse(products_list, safe=False)
+
+# --- Función 3: NUEVA - Registro de Usuarios ---
+@csrf_exempt  # Permite que React envíe datos sin bloqueo temporal
+def register_user(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            nombre = data.get('nombre')
+            email = data.get('email')
+            password = data.get('password')
+
+            # 1. Validar que el email no exista ya
+            if User.objects.filter(email=email).exists():
+                return JsonResponse({'error': 'Este correo ya está registrado.'}, status=400)
+
+            # 2. Crear el usuario de forma segura (encripta la clave automáticamente)
+            user = User.objects.create_user(
+                username=email,  # Usamos el email como nombre de usuario internamente
+                email=email,
+                password=password,
+                first_name=nombre
+            )
+            return JsonResponse({'mensaje': '¡Cuenta creada con éxito!'}, status=201)
+            
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+            
+    return JsonResponse({'error': 'Método no permitido'}, status=405)

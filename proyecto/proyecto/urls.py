@@ -1,17 +1,28 @@
 from django.contrib import admin
 from django.urls import path
-from core.views import get_products, api_home # Importamos ambas funciones
+from core.views import get_products, api_home, register_user # Importamos ambas funciones
 from django.conf import settings
 from django.conf.urls.static import static
+from rest_framework_simplejwt.views import (
+    TokenObtainPairView,
+    TokenRefreshView,
+)
+
 urlpatterns = [
     path('admin/', admin.site.urls),
     
     # Ruta para los productos (la que usa axios en App.jsx)
     path('api/products/', get_products, name='get_products'),
     
+    # === NUEVAS RUTAS PARA INICIAR SESIÓN (JWT) ===
+    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    
     # Ruta para probar si funciona (Home)
-    path('', api_home, name='home'), 
+    path('', api_home, name='home'),
+    path('api/register/', register_user, name='register_user'), 
 ]
+
 if settings.DEBUG:
     # Esto permite ver las fotos subidas (media) en localhost
     urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

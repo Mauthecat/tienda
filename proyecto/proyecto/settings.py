@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'cloudinary',
     'corsheaders',
     'rest_framework',
+    'rest_framework_simplejwt',
     'core',
 ]
 
@@ -176,3 +177,8 @@ SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    )
+}

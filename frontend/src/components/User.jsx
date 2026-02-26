@@ -1,8 +1,13 @@
 import { useState } from 'react';
 import { Mail, Lock, User as UserIcon, LogIn, UserPlus } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom'; // Agrupamos los imports de react-router-dom
+import { useAuth } from '../context/AuthContext';
 
 const User = () => {
+    // EXTRAEMOS LAS FUNCIONES REALES DE NUESTRO CONTEXTO
+    const { login, register } = useAuth();
+    const navigate = useNavigate();
+
     // Estado temporal para alternar entre "Iniciar Sesión" y "Registrarse"
     const [isLoginView, setIsLoginView] = useState(true);
 
@@ -16,14 +21,26 @@ const User = () => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
-    const handleSubmit = (e) => {
+    // FUNCIÓN CONECTADA AL BACKEND
+    const handleSubmit = async (e) => {
         e.preventDefault();
+        
         if (isLoginView) {
-            console.log("Intentando iniciar sesión con:", formData.email);
-            alert("Aquí conectaremos con Django para validar el token JWT.");
+            // LÓGICA DE INICIAR SESIÓN
+            const result = await login(formData.email, formData.password);
+            if (result.success) {
+                navigate('/'); // Si todo sale bien, lo mandamos a la tienda
+            } else {
+                alert(result.error); // Si se equivoca en la clave, le avisamos
+            }
         } else {
-            console.log("Intentando crear cuenta para:", formData);
-            alert("Aquí conectaremos con Django para crear el usuario en la base de datos.");
+            // LÓGICA DE REGISTRO
+            const result = await register(formData.nombre, formData.email, formData.password);
+            if (result.success) {
+                navigate('/'); // Si se registra bien, lo mandamos a la tienda
+            } else {
+                alert(result.error); // Si el correo ya existe, le avisamos
+            }
         }
     };
 
@@ -58,7 +75,7 @@ const User = () => {
                                     <UserIcon size={18} />
                                 </div>
                                 <input 
-                                    required 
+                                    required={!isLoginView} 
                                     type="text" 
                                     name="nombre" 
                                     value={formData.nombre}
