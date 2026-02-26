@@ -16,36 +16,40 @@ const Header = ({ products = [] }) => {
         { name: 'Mi Cuenta', href: '/perfil' },
     ];
 
-    // LÓGICA DE BÚSQUEDA A PRUEBA DE FALLOS (Ignora mayúsculas y tildes)
+    // LÓGICA DE BÚSQUEDA
     const searchResults = searchTerm.trim() === ''
         ? []
         : products.filter(product => {
             if (!product || !product.name) return false;
-            // Normalizamos para quitar tildes y dejar todo en minúsculas
             const nameNormalizado = product.name.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             const terminoNormalizado = searchTerm.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
             return nameNormalizado.includes(terminoNormalizado);
         });
 
     return (
-        <header className="bg-[#b3f3f5] shadow-sm sticky top-0 z-50 w-full transition-colors duration-300">
+        <header className="bg-[#b3f3f5] shadow-sm sticky top-0 z-[100] w-full transition-colors duration-300">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex justify-between items-center h-16 relative">
 
-                    {/* VISTA MÓVIL */}
+                    {/* BOTÓN MENÚ MÓVIL */}
                     <div className="flex md:hidden">
-                        <button onClick={() => setIsMenuOpen(!isMenuOpen)} className="text-gray-600 hover:text-indigo-600 p-2">
+                        <button 
+                            onClick={() => setIsMenuOpen(!isMenuOpen)} 
+                            className="text-gray-600 hover:text-indigo-600 p-2 relative z-[110]"
+                            aria-label="Abrir menú"
+                        >
                             {isMenuOpen ? <X size={28} /> : <Menu size={28} />}
                         </button>
                     </div>
 
+                    {/* LOGO */}
                     <div className="flex-shrink-0 flex items-center md:static absolute left-1/2 md:left-auto transform -translate-x-1/2 md:translate-x-0 h-full">
                         <Link to="/" className="h-full flex items-center">
                             <img src={logoImg} alt="Logo Policromica" className="h-16 w-auto object-contain" />
                         </Link>
                     </div>
 
-                    {/* VISTA ESCRITORIO */}
+                    {/* NAVEGACIÓN Y BUSCADOR DESKTOP */}
                     <div className="hidden md:flex items-center absolute left-1/2 transform -translate-x-1/2 space-x-6 lg:space-x-8">
                         <nav className="flex space-x-6 lg:space-x-8">
                             {navigation.map((item) => (
@@ -59,21 +63,22 @@ const Header = ({ products = [] }) => {
                             ))}
                         </nav>
 
-                        {/* BUSCADOR DESKTOP MEJORADO */}
+                        {/* BUSCADOR */}
                         <div className="relative group ml-2">
                             <input
                                 type="text"
+                                id="search-desktop"
+                                name="search-desktop"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                /* EL TRUCO: Aquí veremos si está recibiendo los productos */
                                 placeholder={`Buscar en ${products.length} productos...`}
                                 className="pl-10 pr-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 w-56 transition-all duration-300 focus:w-72 shadow-sm font-sans"
                             />
                             <Search size={16} className="absolute left-3.5 top-2.5 text-gray-400" />
 
-                            {/* RESULTADOS DE BÚSQUEDA DESKTOP */}
+                            {/* RESULTADOS BÚSQUEDA DESKTOP */}
                             {searchTerm && (
-                                <div className="absolute top-full mt-2 w-full bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                                <div className="absolute top-full mt-2 w-full bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden z-[120]">
                                     {searchResults.length > 0 ? (
                                         <ul className="max-h-72 overflow-y-auto">
                                             {searchResults.map(product => (
@@ -93,17 +98,23 @@ const Header = ({ products = [] }) => {
                                             ))}
                                         </ul>
                                     ) : (
-                                        <div className="p-4 text-center text-sm text-gray-500">No hay resultados para "{searchTerm}"</div>
+                                        <div className="p-4 text-center text-sm text-gray-500">No hay resultados</div>
                                     )}
                                 </div>
                             )}
                         </div>
                     </div>
 
-                    <div className="flex items-center space-x-2 md:space-x-4 z-10">
-                        <Link to="/perfil" className="hidden md:block p-2 text-gray-800 hover:text-indigo-600 transition-transform hover:scale-110">
+                    {/* ICONOS DE ACCIÓN */}
+                    <div className="flex items-center space-x-2 md:space-x-4 relative z-[110]">
+                        <Link 
+                            to="/perfil" 
+                            className="hidden md:block p-2 text-gray-800 hover:text-indigo-600 transition-transform hover:scale-110 relative"
+                            title="Mi Cuenta"
+                        >
                             <User size={24} />
                         </Link>
+                        
                         <button className="hidden md:block p-2 text-gray-800 hover:text-pink-600 transition-transform hover:scale-110">
                             <Heart size={24} />
                         </button>
@@ -125,23 +136,25 @@ const Header = ({ products = [] }) => {
 
             {/* MENÚ MÓVIL DESPLEGABLE */}
             {isMenuOpen && (
-                <div className="md:hidden absolute top-16 left-0 w-full bg-[#b3f3f5] border-t border-cyan-200 shadow-lg animate-in slide-in-from-top-5">
+                <div className="md:hidden absolute top-16 left-0 w-full bg-[#b3f3f5] border-t border-cyan-200 shadow-lg animate-in slide-in-from-top-5 z-[105]">
                     <div className="px-4 pt-4 pb-6 space-y-4">
 
-                        {/* BUSCADOR MÓVIL MEJORADO */}
+                        {/* BUSCADOR MÓVIL */}
                         <div className="relative w-full">
                             <input
                                 type="text"
+                                id="search-mobile"
+                                name="search-mobile"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
-                                placeholder={`Buscar en ${products.length} productos...`}
-                                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-indigo-400 focus:ring-2 focus:ring-indigo-100 shadow-sm"
+                                placeholder="Buscar productos..."
+                                className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl text-sm text-gray-700 placeholder-gray-400 focus:outline-none focus:border-indigo-400 shadow-sm"
                             />
                             <Search size={18} className="absolute left-3.5 top-3.5 text-gray-400" />
 
-                            {/* RESULTADOS DE BÚSQUEDA MÓVIL */}
+                            {/* RESULTADOS BÚSQUEDA MÓVIL */}
                             {searchTerm && (
-                                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-50">
+                                <div className="absolute top-full left-0 right-0 mt-2 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-[120]">
                                     {searchResults.length > 0 ? (
                                         <ul className="max-h-60 overflow-y-auto">
                                             {searchResults.map(product => (
@@ -170,12 +183,17 @@ const Header = ({ products = [] }) => {
                             )}
                         </div>
 
+                        {/* LINKS DE NAVEGACIÓN MÓVIL */}
                         {navigation.map((item) => (
                             <Link
                                 key={item.name}
                                 to={item.href}
-                                onClick={() => setIsMenuOpen(false)} // <--- Esto es clave para que el menú se cierre al navegar
-                                className="block px-3 py-3 rounded-md text-base font-medium text-gray-800 hover:bg-[#feecd4] hover:text-indigo-900 border-b border-cyan-200/50 transition-colors"
+                                onClick={() => setIsMenuOpen(false)}
+                                className={`block px-3 py-3 rounded-md text-base font-medium border-b border-cyan-200/50 transition-colors ${
+                                    item.href === '/perfil' 
+                                    ? 'bg-white text-indigo-600 font-bold shadow-sm mb-2' 
+                                    : 'text-gray-800 hover:bg-[#feecd4]'
+                                }`}
                             >
                                 {item.name}
                             </Link>
