@@ -1,9 +1,13 @@
-import { X, Trash2, ShoppingBag, Plus, Minus } from 'lucide-react'; // Agregamos Plus y Minus
+import { X, Trash2, ShoppingBag, Plus, Minus } from 'lucide-react';
 import { useCart } from '../context/CartContext';
+// 1. AQUI AGREGAMOS LA IMPORTACIÓN DE USENAVIGATE
+import { useNavigate } from 'react-router-dom'; 
 
 const CartDrawer = () => {
-    // Traemos updateQuantity del contexto
     const { cart, removeFromCart, updateQuantity, totalPrice, isCartOpen, setIsCartOpen } = useCart();
+    
+    // 2. AQUÍ DECLARAMOS LA FUNCIÓN NAVIGATE
+    const navigate = useNavigate(); 
 
     if (!isCartOpen) return null;
 
@@ -86,8 +90,8 @@ const CartDrawer = () => {
                         </div>
                         <button
                             onClick={() => {
-                                setIsCartOpen(false); // Cierra el drawer
-                                navigate('/checkout'); // Navega al checkout
+                                setIsCartOpen(false); 
+                                navigate('/checkout'); // AHORA SÍ SABE QUÉ HACER
                             }}
                             className="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-4 rounded-xl uppercase tracking-widest transition-transform hover:-translate-y-1 shadow-lg shadow-gray-900/20"
                         >
