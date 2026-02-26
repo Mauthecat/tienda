@@ -3,7 +3,6 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
-# IMPORTANTE: Ahora importamos Address para la dirección de envío
 from .models import Product, Order, OrderItem, Favorite, Address
 import hmac
 import hashlib
@@ -32,7 +31,7 @@ def get_products(request):
             'name': product.name,
             'price': float(product.price),
             'stock': product.stock,
-            'category__name': product.category.name if product.category else "Sin categoría", # <-- LÍNEA NUEVA
+            'category__name': product.category.name if product.category else "Sin categoría",
             'main_image': image_url,
             'all_images': all_images,
             'description': product.description
@@ -58,7 +57,6 @@ def register_user(request):
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
 
-# --- ACTUALIZADO: AHORA GUARDA DIRECCIÓN Y PRODUCTOS ---
 @csrf_exempt
 def create_payment(request):
     if request.method == 'POST':
@@ -69,23 +67,20 @@ def create_payment(request):
             cart_items = data.get('cart', [])
             shipping_data = data.get('shipping', {})
             
-            # 1. Buscamos al usuario o le creamos una cuenta "fantasma"
             nombre_cliente = f"{shipping_data.get('nombre', '')} {shipping_data.get('apellido', '')}".strip() or 'Cliente Invitado'
             user, created = User.objects.get_or_create(
                 email=email,
                 defaults={'username': email, 'first_name': nombre_cliente}
             )
 
-            # 2. Guardamos su dirección de envío
             address = Address.objects.create(
                 user=user,
                 street_address=shipping_data.get('direccion', 'Sin dirección'),
                 city=shipping_data.get('ciudad', 'Sin ciudad'),
-                state='N/A', # Dejamos N/A por si más adelante quieres pedir región
+                state='N/A',
                 zip_code='0000000',
             )
 
-            # 3. Creamos la Orden vinculando la dirección
             order = Order.objects.create(
                 user=user,
                 shipping_address=address,
@@ -93,11 +88,9 @@ def create_payment(request):
                 status=Order.StatusChoices.PENDING
             )
 
-            # 4. Guardamos cada producto que estaba en el carrito
             for item in cart_items:
                 try:
                     product = Product.objects.get(id=item['id'])
-                    # La base de datos (models.py) calcula el unit_price automáticamente al guardar
                     OrderItem.objects.create(
                         order=order,
                         product=product,
@@ -143,17 +136,14 @@ def create_payment(request):
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
 
-# --- ACTUALIZADO: CIERRE DE COMPRA Y DESCUENTO DE STOCK ---
 @csrf_exempt
 def payment_confirm(request):
-    """Flow avisa en secreto que se pagó. Aquí descontamos stock."""
     if request.method == 'POST':
         token = request.POST.get('token')
         if token:
             api_key = os.environ.get("FLOW_API_KEY")
             secret_key = os.environ.get("FLOW_SECRET_KEY")
             
-            # 1. Le preguntamos a Flow el estado real del token
             params = {"apiKey": api_key, "token": token}
             sorted_params = sorted(params.items(), key=lambda x: x[0])
             to_sign = "".join([f"{key}{value}" for key, value in sorted_params])
@@ -163,27 +153,24 @@ def payment_confirm(request):
             
             if res.status_code == 200:
                 flow_data = res.json()
-                status = flow_data.get('status') # Flow Status: 2 es Pagado
-                order_id_str = flow_data.get('commerceOrder', '') # Ej: "POLI-15"
+                status = flow_data.get('status')
+                order_id_str = flow_data.get('commerceOrder', '')
                 
-                # 2. Si realmente se pagó y es nuestra orden...
                 if status == 2 and order_id_str.startswith('POLI-'):
                     order_id = int(order_id_str.replace('POLI-', ''))
                     try:
                         order = Order.objects.get(id=order_id)
                         
-                        # Evitamos ejecutar esto dos veces si Flow manda doble aviso
                         if order.status != Order.StatusChoices.PAID:
                             order.status = Order.StatusChoices.PAID
                             order.save()
                             
-                            # 3. ¡Descontar Stock en los productos!
                             for item in order.items.all():
                                 product = item.product
                                 if product.stock >= item.quantity:
                                     product.stock -= item.quantity
                                 else:
-                                    product.stock = 0 # Prevenir stock negativo
+                                    product.stock = 0
                                 product.save()
                                 
                     except Order.DoesNotExist:
@@ -195,13 +182,11 @@ def payment_confirm(request):
 
 @csrf_exempt
 def payment_final_redirect(request):
-    """Redirige a React y averigua el número de orden usando el Token"""
     if request.method == 'POST':
         token = request.POST.get('token')
         frontend_url = "https://policromica.vercel.app/checkout/status"
         
         if token:
-            # Le preguntamos a Flow qué orden le corresponde a este token
             api_key = os.environ.get("FLOW_API_KEY")
             secret_key = os.environ.get("FLOW_SECRET_KEY")
             params = {"apiKey": api_key, "token": token}
@@ -224,7 +209,6 @@ def payment_final_redirect(request):
 
 @csrf_exempt
 def get_user_orders(request):
-    """Devuelve el historial de pedidos de un correo"""
     email = request.GET.get('email')
     if not email:
         return JsonResponse([], safe=False)
@@ -242,7 +226,6 @@ def get_user_orders(request):
 
 @csrf_exempt
 def track_order(request):
-    """Busca una orden por su código POLI-XXX"""
     order_code = request.GET.get('code', '').upper().replace('POLI-', '')
     try:
         order = Order.objects.get(id=order_code)
@@ -258,7 +241,6 @@ def track_order(request):
     
 @csrf_exempt
 def get_favorites(request):
-    """Obtiene los favoritos de un usuario"""
     email = request.GET.get('email')
     if not email:
         return JsonResponse([], safe=False)
@@ -279,6 +261,7 @@ def get_favorites(request):
             'name': product.name,
             'price': float(product.price),
             'stock': product.stock,
+            'category__name': product.category.name if product.category else "Sin categoría", # <-- AQUI VA EL FIX, DONDE CORRESPONDE
             'image': image_url,
         })
 
@@ -286,7 +269,6 @@ def get_favorites(request):
 
 @csrf_exempt
 def toggle_favorite(request):
-    """Agrega o quita un producto de favoritos (Interruptor)"""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
