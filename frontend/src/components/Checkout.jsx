@@ -6,7 +6,7 @@ import axios from 'axios';
 
 const Checkout = () => {
     const { cart, totalPrice } = useCart();
-    const [isLoading, setIsLoading] = useState(false); // Para mostrar que está cargando
+    const [isLoading, setIsLoading] = useState(false);
 
     const [formData, setFormData] = useState({
         nombre: '', apellido: '', email: '', telefono: '', direccion: '', ciudad: ''
@@ -25,13 +25,19 @@ const Checkout = () => {
             : 'http://127.0.0.1:8000';
 
         try {
-            // Le enviamos el total y el correo a tu función create_payment en Django
-            const response = await axios.post(`${BASE_URL}/api/payment/create/`, {
+            // AHORA ENVIAMOS EL CARRITO Y LA DIRECCIÓN COMPLETA
+            const payload = {
                 amount: totalPrice,
                 email: formData.email,
-            });
+                shipping: formData, // Mandamos nombre, apellido, dirección...
+                cart: cart.map(item => ({
+                    id: item.id,
+                    quantity: item.quantity
+                }))
+            };
 
-            // Si Django responde con la URL de Flow, redirigimos al cliente
+            const response = await axios.post(`${BASE_URL}/api/payment/create/`, payload);
+
             if (response.data.url) {
                 window.location.href = response.data.url;
             }

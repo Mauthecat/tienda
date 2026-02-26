@@ -3,7 +3,8 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
-from .models import Product, Order, OrderItem, Favorite
+# IMPORTANTE: Ahora importamos Address para la dirección de envío
+from .models import Product, Order, OrderItem, Favorite, Address
 import hmac
 import hashlib
 import uuid
@@ -57,7 +58,7 @@ def register_user(request):
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
 
-# --- ACTUALIZADO: CREA LA ORDEN EN LA BD ANTES DE PAGAR ---
+# --- ACTUALIZADO: AHORA GUARDA DIRECCIÓN Y PRODUCTOS ---
 @csrf_exempt
 def create_payment(request):
     if request.method == 'POST':
@@ -65,21 +66,46 @@ def create_payment(request):
             data = json.loads(request.body)
             amount = int(data.get('amount', 0))
             email = data.get('email', 'cliente@policromica.cl')
+            cart_items = data.get('cart', [])
+            shipping_data = data.get('shipping', {})
             
-            # 1. Buscamos al usuario o le creamos una cuenta "fantasma" para asociar el pedido
+            # 1. Buscamos al usuario o le creamos una cuenta "fantasma"
+            nombre_cliente = f"{shipping_data.get('nombre', '')} {shipping_data.get('apellido', '')}".strip() or 'Cliente Invitado'
             user, created = User.objects.get_or_create(
                 email=email,
-                defaults={'username': email, 'first_name': 'Cliente Invitado'}
+                defaults={'username': email, 'first_name': nombre_cliente}
             )
 
-            # 2. CREAMOS LA ORDEN REAL EN LA BASE DE DATOS
+            # 2. Guardamos su dirección de envío
+            address = Address.objects.create(
+                user=user,
+                street_address=shipping_data.get('direccion', 'Sin dirección'),
+                city=shipping_data.get('ciudad', 'Sin ciudad'),
+                state='N/A', # Dejamos N/A por si más adelante quieres pedir región
+                zip_code='0000000',
+            )
+
+            # 3. Creamos la Orden vinculando la dirección
             order = Order.objects.create(
                 user=user,
+                shipping_address=address,
                 total_amount=amount,
                 status=Order.StatusChoices.PENDING
             )
+
+            # 4. Guardamos cada producto que estaba en el carrito
+            for item in cart_items:
+                try:
+                    product = Product.objects.get(id=item['id'])
+                    # La base de datos (models.py) calcula el unit_price automáticamente al guardar
+                    OrderItem.objects.create(
+                        order=order,
+                        product=product,
+                        quantity=item['quantity']
+                    )
+                except Product.DoesNotExist:
+                    continue
             
-            # El número de orden para Flow y para el cliente (Ej: POLI-15)
             commerce_order = f"POLI-{order.id}"
 
             api_key = os.environ.get("FLOW_API_KEY")
@@ -117,14 +143,52 @@ def create_payment(request):
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
 
+# --- ACTUALIZADO: CIERRE DE COMPRA Y DESCUENTO DE STOCK ---
 @csrf_exempt
 def payment_confirm(request):
-    """Aquí se actualiza la BD a PAGADO cuando Flow avisa en secreto"""
+    """Flow avisa en secreto que se pagó. Aquí descontamos stock."""
     if request.method == 'POST':
         token = request.POST.get('token')
         if token:
-            # En producción, aquí haríamos un GET a Flow para verificar el token 
-            # y cambiaríamos order.status = 'pagado'
+            api_key = os.environ.get("FLOW_API_KEY")
+            secret_key = os.environ.get("FLOW_SECRET_KEY")
+            
+            # 1. Le preguntamos a Flow el estado real del token
+            params = {"apiKey": api_key, "token": token}
+            sorted_params = sorted(params.items(), key=lambda x: x[0])
+            to_sign = "".join([f"{key}{value}" for key, value in sorted_params])
+            params["s"] = hmac.new(secret_key.encode(), to_sign.encode(), hashlib.sha256).hexdigest()
+            
+            res = requests.get("https://sandbox.flow.cl/api/payment/getStatus", params=params)
+            
+            if res.status_code == 200:
+                flow_data = res.json()
+                status = flow_data.get('status') # Flow Status: 2 es Pagado
+                order_id_str = flow_data.get('commerceOrder', '') # Ej: "POLI-15"
+                
+                # 2. Si realmente se pagó y es nuestra orden...
+                if status == 2 and order_id_str.startswith('POLI-'):
+                    order_id = int(order_id_str.replace('POLI-', ''))
+                    try:
+                        order = Order.objects.get(id=order_id)
+                        
+                        # Evitamos ejecutar esto dos veces si Flow manda doble aviso
+                        if order.status != Order.StatusChoices.PAID:
+                            order.status = Order.StatusChoices.PAID
+                            order.save()
+                            
+                            # 3. ¡Descontar Stock en los productos!
+                            for item in order.items.all():
+                                product = item.product
+                                if product.stock >= item.quantity:
+                                    product.stock -= item.quantity
+                                else:
+                                    product.stock = 0 # Prevenir stock negativo
+                                product.save()
+                                
+                    except Order.DoesNotExist:
+                        pass
+                        
             return JsonResponse({'status': 'ok'}, status=200)
     return JsonResponse({'error': 'Método no permitido'}, status=400)
 
@@ -150,14 +214,13 @@ def payment_final_redirect(request):
             if res.status_code == 200:
                 order_id = res.json().get('commerceOrder', '')
 
-            # Enviamos al cliente a React con su número de orden real
             return redirect(f"{frontend_url}?token={token}&order={order_id}")
         
         return redirect(frontend_url)
     return redirect("https://policromica.vercel.app")
 
 
-# --- NUEVAS FUNCIONES PARA EL PERFIL Y RASTREO ---
+# --- FUNCIONES PARA EL PERFIL Y RASTREO ---
 
 @csrf_exempt
 def get_user_orders(request):
@@ -216,7 +279,7 @@ def get_favorites(request):
             'name': product.name,
             'price': float(product.price),
             'stock': product.stock,
-            'image': image_url, # Lo enviamos directo para facilitar la lectura
+            'image': image_url,
         })
 
     return JsonResponse(products_list, safe=False)
@@ -239,7 +302,7 @@ def toggle_favorite(request):
             fav, created = Favorite.objects.get_or_create(user=user, product=product)
             
             if not created:
-                fav.delete() # Si ya estaba en favoritos, lo quitamos
+                fav.delete()
                 return JsonResponse({'status': 'removed'}, status=200)
                 
             return JsonResponse({'status': 'added'}, status=201)
