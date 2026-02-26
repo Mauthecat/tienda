@@ -32,7 +32,7 @@ def get_products(request):
             'name': product.name,
             'price': float(product.price),
             'stock': product.stock,
-            'category__name': product.category.name if product.category else "Sin categoría",
+            'category__name': product.category.name if product.category else "Sin categoría", # <-- LÍNEA NUEVA
             'main_image': image_url,
             'all_images': all_images,
             'description': product.description

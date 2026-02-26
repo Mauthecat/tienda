@@ -93,7 +93,7 @@ const Favoritos = () => {
                                 </div>
                                 <div className="flex-grow flex flex-col justify-between">
                                     <div>
-                                        <p className="text-xs text-pink-500 font-bold uppercase tracking-wider mb-1">{product.category__name}</p>
+                                        <p className="text-xs text-pink-500 font-bold uppercase tracking-wider mb-1">{product.category__name || 'Producto'}</p>
                                         <h3 className="text-sm font-bold text-gray-800 line-clamp-2 mb-2">{product.name}</h3>
                                     </div>
                                     <div className="flex items-center justify-between mt-auto pt-4 border-t border-gray-50">
