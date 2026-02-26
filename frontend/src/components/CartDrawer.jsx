@@ -11,19 +11,19 @@ const CartDrawer = () => {
 
     return (
         <div className="fixed inset-0 z-[100] flex justify-end">
-            <div 
+            <div
                 className="absolute inset-0 bg-black/50 backdrop-blur-sm transition-opacity"
                 onClick={() => setIsCartOpen(false)}
             ></div>
 
             <div className="relative w-full max-w-md bg-white h-full shadow-2xl flex flex-col animate-in slide-in-from-right duration-300">
-                
+
                 <div className="flex items-center justify-between p-4 md:p-6 border-b border-gray-100">
                     <h2 className="text-xl font-bold text-gray-900 uppercase tracking-widest flex items-center gap-2">
                         <ShoppingBag /> Tu Carrito
                     </h2>
-                    <button 
-                        onClick={() => setIsCartOpen(false)} 
+                    <button
+                        onClick={() => setIsCartOpen(false)}
                         className="p-2 hover:bg-gray-100 rounded-full transition-colors"
                     >
                         <X size={24} className="text-gray-600" />
@@ -40,14 +40,14 @@ const CartDrawer = () => {
                         cart.map((item) => (
                             <div key={item.id} className="flex gap-4 bg-gray-50 p-3 rounded-2xl border border-gray-100 relative group">
                                 <img src={item.image} alt={item.name} className="w-20 h-20 object-cover rounded-xl bg-white" />
-                                
+
                                 <div className="flex flex-col justify-between flex-1 py-1">
                                     <h3 className="font-bold text-gray-800 text-sm leading-tight pr-6">{item.name}</h3>
-                                    
+
                                     {/* CONTROLES DE CANTIDAD */}
                                     <div className="flex items-center justify-between mt-2">
                                         <div className="flex items-center bg-white border border-gray-200 rounded-lg">
-                                            <button 
+                                            <button
                                                 onClick={() => updateQuantity(item.id, -1)}
                                                 className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-l-lg transition-colors"
                                             >
@@ -56,7 +56,7 @@ const CartDrawer = () => {
                                             <span className="w-8 text-center text-sm font-bold text-gray-800">
                                                 {item.quantity}
                                             </span>
-                                            <button 
+                                            <button
                                                 onClick={() => updateQuantity(item.id, 1)}
                                                 className="p-1.5 text-gray-500 hover:text-indigo-600 hover:bg-gray-100 rounded-r-lg transition-colors"
                                             >
@@ -67,7 +67,7 @@ const CartDrawer = () => {
                                     </div>
                                 </div>
 
-                                <button 
+                                <button
                                     onClick={() => removeFromCart(item.id)}
                                     className="absolute top-3 right-3 text-gray-300 hover:text-red-500 transition-colors"
                                 >
@@ -84,7 +84,13 @@ const CartDrawer = () => {
                             <span className="text-gray-600 font-medium uppercase tracking-wider text-sm">Total</span>
                             <span className="text-2xl font-bold text-gray-900">{formattedTotal}</span>
                         </div>
-                        <button className="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-4 rounded-xl uppercase tracking-widest transition-transform hover:-translate-y-1 shadow-lg shadow-gray-900/20">
+                        <button
+                            onClick={() => {
+                                setIsCartOpen(false); // Cierra el drawer
+                                navigate('/checkout'); // Navega al checkout
+                            }}
+                            className="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-4 rounded-xl uppercase tracking-widest transition-transform hover:-translate-y-1 shadow-lg shadow-gray-900/20"
+                        >
                             Ir a Pagar
                         </button>
                     </div>
