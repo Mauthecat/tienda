@@ -70,19 +70,10 @@ const Contact = () => {
                                 </div>
                                 <div>
                                     <p className="font-bold text-sm uppercase tracking-wider">Instagram</p>
-                                    <a href="#" className="text-gray-600 hover:text-pink-600 transition-colors">@policromica</a>
+                                    <a href="#" className="text-gray-600 hover:text-pink-600 transition-colors">@poli_cromica</a>
                                 </div>
                             </div>
 
-                            <div className="flex items-center gap-4 text-gray-800">
-                                <div className="bg-white p-3 rounded-full shadow-sm text-indigo-500">
-                                    <Mail size={20} />
-                                </div>
-                                <div>
-                                    <p className="font-bold text-sm uppercase tracking-wider">Email</p>
-                                    <p className="text-gray-600">contacto@policromica.cl</p>
-                                </div>
-                            </div>
                         </div>
                     </div>
 
