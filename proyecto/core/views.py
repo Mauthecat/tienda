@@ -4,6 +4,8 @@ from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
 from .models import Product, Order, OrderItem, Favorite, Address, Shipment
+from datetime import timedelta
+from django.utils import timezone
 import hmac
 import hashlib
 import uuid
@@ -204,6 +206,67 @@ def payment_final_redirect(request):
         return redirect(frontend_url)
     return redirect("https://policromica.vercel.app")
 
+# NUEVA FUNCIÓN: REINTENTAR PAGO DE ORDEN EXISTENTE
+@csrf_exempt
+def retry_payment(request):
+    """Recibe un ID de orden existente, verifica que esté PENDIENTE y genera un nuevo token de Flow"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            order_id = data.get('order_id')
+            email = data.get('email')
+
+            if not order_id or not email:
+                return JsonResponse({'error': 'Faltan datos'}, status=400)
+
+            # Buscamos la orden asegurándonos que pertenezca al usuario y esté PENDIENTE
+            order = Order.objects.get(id=order_id, user__email=email, status=Order.StatusChoices.PENDING)
+            
+            # Verificamos si la orden ya expiró (más de 6 horas)
+            expiration_threshold = timezone.now() - timedelta(hours=6)
+            if order.created_at < expiration_threshold:
+                return JsonResponse({'error': 'Esta orden ha expirado por inactividad. Por favor, realiza un nuevo pedido.'}, status=400)
+
+            commerce_order = f"POLI-{order.id}"
+            amount = int(order.total_amount)
+
+            api_key = os.environ.get("FLOW_API_KEY")
+            secret_key = os.environ.get("FLOW_SECRET_KEY")
+            api_url = "https://sandbox.flow.cl/api"
+
+            params = {
+                "apiKey": api_key,
+                "commerceOrder": commerce_order,
+                "subject": f"Reintento Pago Pedido {commerce_order} en Policrómica",
+                "currency": "CLP",
+                "amount": amount,
+                "email": email,
+                "urlConfirmation": "https://tienda-backend-fn64.onrender.com/api/payment/confirm/", 
+                "urlReturn": "https://tienda-backend-fn64.onrender.com/api/payment/final-redirect/", 
+            }
+
+            sorted_params = sorted(params.items(), key=lambda x: x[0])
+            to_sign = "".join([f"{key}{value}" for key, value in sorted_params])
+            signature = hmac.new(secret_key.encode(), to_sign.encode(), hashlib.sha256).hexdigest()
+            params["s"] = signature
+
+            encoded_body = urlencode(params)
+            response = requests.post(f"{api_url}/payment/create", data=encoded_body, headers={'Content-Type':'application/x-www-form-urlencoded'})
+            
+            if response.status_code == 200:
+                flow_data = response.json()
+                payment_url = f"{flow_data['url']}?token={flow_data['token']}"
+                return JsonResponse({'url': payment_url}, status=200)
+            else:
+                return JsonResponse({'error': 'Error reintentando pago con Flow', 'details': response.text}, status=400)
+
+        except Order.DoesNotExist:
+            return JsonResponse({'error': 'Orden no encontrada o ya pagada'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+            
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
 
 # --- FUNCIONES PARA EL PERFIL, AJUSTES Y RASTREO ---
 
@@ -271,12 +334,22 @@ def get_user_orders(request):
     
     orders = Order.objects.filter(user__email=email).order_by('-created_at')
     data = []
+    
+    # Lógica para determinar si la orden expiró
+    expiration_threshold = timezone.now() - timedelta(hours=6)
+
     for o in orders:
+        is_pending = o.status == Order.StatusChoices.PENDING
+        is_expired = is_pending and o.created_at < expiration_threshold
+
         data.append({
+            'id': o.id, # Necesitamos el ID crudo para el reintento
             'order_number': f"POLI-{o.id}",
             'status': o.get_status_display(),
             'total': float(o.total_amount),
-            'date': o.created_at.strftime("%d/%m/%Y")
+            'date': o.created_at.strftime("%d/%m/%Y"),
+            'raw_status': o.status, # 'pendiente', 'pagado', etc.
+            'is_expired': is_expired
         })
     return JsonResponse(data, safe=False)
 
@@ -298,8 +371,14 @@ def track_order(request):
 
         address_str = f"{order.shipping_address.street_address}, {order.shipping_address.city}" if order.shipping_address else "Retiro en tienda / No especificada"
 
+        # Verificamos si la orden ya expiró (más de 6 horas)
+        expiration_threshold = timezone.now() - timedelta(hours=6)
+        is_expired = order.status == Order.StatusChoices.PENDING and order.created_at < expiration_threshold
+
         return JsonResponse({
             'success': True,
+            'id': order.id,
+            'email': order.user.email, # Necesitamos esto para el reintento desde el track
             'order_number': f"POLI-{order.id}",
             'status': order.get_status_display(),
             'total': float(order.total_amount),
@@ -307,7 +386,9 @@ def track_order(request):
             'customer_name': order.user.first_name or order.user.username,
             'address': address_str,
             'courier': courier,
-            'tracking_number': tracking_number
+            'tracking_number': tracking_number,
+            'raw_status': order.status,
+            'is_expired': is_expired
         })
     except (Order.DoesNotExist, ValueError):
         return JsonResponse({'success': False, 'error': 'Pedido no encontrado'})

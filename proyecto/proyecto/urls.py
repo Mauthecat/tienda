@@ -11,8 +11,9 @@ from core.views import (
     track_order, 
     get_favorites, 
     toggle_favorite,
-    get_user_profile,     # <-- NUEVO
-    update_user_profile   # <-- NUEVO
+    get_user_profile,
+    update_user_profile,
+    retry_payment
 )
 from django.conf import settings
 from django.conf.urls.static import static
@@ -31,6 +32,7 @@ urlpatterns = [
     path('api/payment/create/', create_payment, name='create_payment'),
     path('api/payment/confirm/', payment_confirm, name='payment_confirm'),
     path('api/payment/final-redirect/', payment_final_redirect, name='payment_final_redirect'),
+    path('api/payment/retry/', retry_payment, name='retry_payment'),
     path('api/orders/', get_user_orders, name='get_user_orders'),
     path('api/track/', track_order, name='track_order'),
     path('api/favorites/', get_favorites, name='get_favorites'),
