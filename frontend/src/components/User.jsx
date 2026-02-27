@@ -54,17 +54,15 @@ const User = () => {
         setSavingProfile(false);
     };
 
-    // FUNCIÓN PARA REINTENTAR PAGO DESDE LA TABLA
     const handleRetryPayment = async (orderId) => {
         setIsRetryingPayment(true);
         try {
             const response = await axios.post(`${BASE_URL}/api/payment/retry/`, { order_id: orderId, email: user.email });
             if (response.data.url) {
-                window.location.href = response.data.url; // Redirigimos a Flow
+                window.location.href = response.data.url;
             }
         } catch (error) {
-            console.error("Error reintentando pago", error);
-            alert(error.response?.data?.error || "Hubo un problema al reintentar el pago. Por favor intenta más tarde.");
+            alert(error.response?.data?.error || "Hubo un problema al reintentar el pago.");
         } finally {
             setIsRetryingPayment(false);
         }
@@ -96,7 +94,7 @@ const User = () => {
             };
             fetchData();
         }
-    }, [user]);
+    }, [user, BASE_URL]);
 
     if (loading) return <div className="min-h-screen flex items-center justify-center text-gray-500">Cargando...</div>;
 
@@ -112,7 +110,7 @@ const User = () => {
                                 <div className="w-24 h-24 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-orange-200">
                                     <UserIcon size={48} />
                                 </div>
-                                <h2 className="text-xl font-bold text-gray-900 mb-1">Tu Perfil</h2>
+                                <h2 className="text-xl font-bold text-gray-900 mb-1">¡Hola, {profileData.nombre || 'Cata'}!</h2>
                                 <p className="text-gray-500 text-xs mb-8 break-all">{user.email}</p>
 
                                 <div className="space-y-3">
@@ -133,46 +131,35 @@ const User = () => {
                                 
                                 {activeTab === 'pedidos' ? (
                                     <>
-                                        {/* SECCIÓN ÓRDENES */}
                                         <div>
                                             <h3 className="text-lg font-bold text-gray-800 mb-6 uppercase tracking-wider flex items-center gap-2">
                                                 <Package className="text-cyan-500" /> Historial de Compras
                                             </h3>
                                             
-                                            {/* MENSAJE DE ADVERTENCIA SOBRE ÓRDENES EXPIRADAS */}
                                             <div className="mb-6 bg-pink-50 border border-pink-100 p-4 rounded-xl text-pink-900 flex items-start gap-3">
                                                 <Clock3 className="text-pink-400 mt-0.5" size={20} />
-                                                <p className="text-xs leading-relaxed">Nota: Las órdenes que permanezcan en estado <span className="font-bold">Pendiente</span> por más de 6 horas serán canceladas y borradas automáticamente por seguridad y control de stock.</p>
+                                                <p className="text-xs leading-relaxed">Nota: Las órdenes que permanezcan en estado <span className="font-bold">Pendiente</span> por más de 6 horas serán canceladas por control de stock.</p>
                                             </div>
 
                                             {loadingData ? (
                                                 <p className="text-sm text-gray-500">Cargando...</p>
                                             ) : orders.length === 0 ? (
                                                 <div className="bg-gray-50 rounded-2xl p-6 text-center border border-gray-100">
-                                                    <p className="text-sm text-gray-500">Aún no tienes pedidos registrados.</p>
+                                                    <p className="text-sm text-gray-500 italic">No registras pedidos aún.</p>
                                                 </div>
                                             ) : (
                                                 <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2">
-                                                    {orders.map((order, index) => (
-                                                        <div key={index} className={`p-4 rounded-2xl border flex justify-between items-center transition-all ${order.is_expired ? 'bg-gray-100 border-gray-200 opacity-60' : 'bg-gray-50 border-gray-100 hover:shadow-md'}`}>
+                                                    {orders.map((order) => (
+                                                        <div key={order.id} className={`p-4 rounded-2xl border flex justify-between items-center transition-all ${order.is_expired ? 'bg-gray-100 opacity-60' : 'bg-gray-50 border-gray-100 hover:shadow-md'}`}>
                                                             <div>
                                                                 <p className="font-bold text-gray-900">{order.order_number}</p>
                                                                 <p className="text-xs text-gray-500">{order.date}</p>
                                                             </div>
                                                             <div className="text-right flex flex-col items-end gap-2">
                                                                 <p className="font-bold text-cyan-600">${order.total}</p>
-                                                                
-                                                                {/* ESTADO O BOTÓN DE PAGO */}
-                                                                {order.is_expired ? (
-                                                                    <p className="text-[10px] font-bold uppercase tracking-wider text-gray-500 bg-gray-200 px-2 py-1 rounded">Expirado</p>
-                                                                ) : order.raw_status === 'pendiente' ? (
-                                                                    <button 
-                                                                        onClick={() => handleRetryPayment(order.id)}
-                                                                        disabled={isRetryingPayment}
-                                                                        className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-white bg-pink-600 hover:bg-pink-700 px-3 py-1.5 rounded-lg transition-colors disabled:opacity-50"
-                                                                    >
-                                                                        {isRetryingPayment ? <Loader2 size={12} className="animate-spin"/> : <CreditCard size={12} />}
-                                                                        {isRetryingPayment ? 'Procesando...' : 'Pagar Ahora'}
+                                                                {order.raw_status === 'pendiente' && !order.is_expired ? (
+                                                                    <button onClick={() => handleRetryPayment(order.id)} disabled={isRetryingPayment} className="flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-wider text-white bg-pink-600 hover:bg-pink-700 px-3 py-1.5 rounded-lg">
+                                                                        {isRetryingPayment ? <Loader2 size={12} className="animate-spin"/> : 'Pagar Ahora'}
                                                                     </button>
                                                                 ) : (
                                                                     <p className="text-[10px] font-bold uppercase tracking-wider text-cyan-900 bg-cyan-100 px-2 py-1 rounded">{order.status}</p>
@@ -183,21 +170,68 @@ const User = () => {
                                                 </div>
                                             )}
                                         </div>
-
-                                        <div className="w-full h-px bg-gray-100"></div>
-
-                                        {/* FAVORITOS */}
-                                        <div>
-                                            {/* ... resto de favoritos (igual que antes) ... */}
-                                        </div>
                                     </>
                                 ) : (
-                                    /* SECCIÓN AJUSTES (igual que antes) */
-                                    <>
-                                        {/* ... contenido de ajustes ... */}
-                                    </>
+                                    <div>
+                                        <h3 className="text-lg font-bold text-gray-800 mb-6 uppercase tracking-wider flex items-center gap-2">
+                                            <Settings className="text-cyan-500" /> Ajustar mis Datos
+                                        </h3>
+                                        <form onSubmit={handleSaveProfile} className="space-y-4">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold uppercase text-gray-400 ml-1">Nombre</label>
+                                                    <input type="text" name="nombre" value={profileData.nombre} onChange={handleProfileChange} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm focus:outline-none focus:border-cyan-400" />
+                                                </div>
+                                                <div className="space-y-1">
+                                                    <label className="text-[10px] font-bold uppercase text-gray-400 ml-1">Teléfono</label>
+                                                    <input type="text" name="telefono" value={profileData.telefono} onChange={handleProfileChange} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm focus:outline-none focus:border-cyan-400" />
+                                                </div>
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold uppercase text-gray-400 ml-1">Dirección</label>
+                                                <input type="text" name="direccion" value={profileData.direccion} onChange={handleProfileChange} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm focus:outline-none focus:border-cyan-400" />
+                                            </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] font-bold uppercase text-gray-400 ml-1">Ciudad</label>
+                                                <input type="text" name="ciudad" value={profileData.ciudad} onChange={handleProfileChange} className="w-full bg-gray-50 border border-gray-100 rounded-xl p-3 text-sm focus:outline-none focus:border-cyan-400" />
+                                            </div>
+                                            <button type="submit" disabled={savingProfile} className="w-full bg-cyan-600 text-white font-bold py-4 rounded-xl flex items-center justify-center gap-2 hover:bg-cyan-700 transition-colors disabled:opacity-50" >
+                                                {savingProfile ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
+                                                {savingProfile ? 'Guardando...' : 'Guardar Cambios'}
+                                            </button>
+                                        </form>
+                                    </div>
                                 )}
 
+                                <div className="w-full h-px bg-gray-100"></div>
+
+                                {/* SECCIÓN FAVORITOS (Siempre Visible Abajo) */}
+                                <div>
+                                    <div className="flex justify-between items-center mb-6">
+                                        <h3 className="text-lg font-bold text-gray-800 uppercase tracking-wider flex items-center gap-2">
+                                            <Heart className="text-pink-500 fill-pink-500" size={20} /> Mis Favoritos
+                                        </h3>
+                                        <Link to="/favoritos" className="text-xs font-bold text-indigo-600 hover:underline">Ver catálogo</Link>
+                                    </div>
+                                    
+                                    {favoritesPreview.length === 0 ? (
+                                        <p className="text-sm text-gray-400 italic">Aún no has guardado favoritos.</p>
+                                    ) : (
+                                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                            {favoritesPreview.map((fav) => (
+                                                <div key={fav.id} className="group relative aspect-square rounded-2xl overflow-hidden bg-gray-100 shadow-sm border border-pink-50">
+                                                    <img src={fav.imageUrl} className="w-full h-full object-cover transition-transform group-hover:scale-110" alt={fav.name} />
+                                                    <div className="absolute inset-0 bg-gradient-to-t from-black/70 to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex flex-col justify-end p-3">
+                                                        <p className="text-[10px] text-white font-bold truncate mb-2">{fav.name}</p>
+                                                        <button onClick={() => addToCart(fav)} className="w-full bg-white text-indigo-600 text-[10px] font-bold py-1.5 rounded-lg flex items-center justify-center gap-1 hover:bg-indigo-50 shadow-lg">
+                                                            <ShoppingCart size={10} /> Al carro
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -205,65 +239,38 @@ const User = () => {
             </div>
         );
     }
+
     return (
-        <div className="min-h-screen bg-[#b3f3f5] py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
-            <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-xl border border-gray-100 p-8 animate-in zoom-in-95 duration-300">
+        <div className="min-h-screen bg-[#b3f3f5] py-12 px-4 flex items-center justify-center">
+            <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-xl p-8 animate-in zoom-in-95 duration-300">
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#feecd4] text-orange-500 mb-4 shadow-sm border border-orange-100">
+                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-[#feecd4] text-orange-500 mb-4 shadow-sm">
                         {isLoginView ? <LogIn size={32} /> : <UserPlus size={32} />}
                     </div>
-                    <h2 className="text-2xl font-bold text-gray-900 uppercase tracking-widest">
-                        {isLoginView ? 'Iniciar Sesión' : 'Crear Cuenta'}
-                    </h2>
-                    <p className="text-sm text-gray-500 mt-2">
-                        {isLoginView ? 'Bienvenida de nuevo a Policromica' : 'Únete para guardar favoritos y comprar más rápido'}
-                    </p>
+                    <h2 className="text-2xl font-bold text-gray-900 uppercase tracking-widest">{isLoginView ? 'Iniciar Sesión' : 'Crear Cuenta'}</h2>
                 </div>
-
                 <form onSubmit={handleSubmit} className="space-y-5">
                     {!isLoginView && (
-                        <div>
-                            <label className="block text-xs text-gray-500 uppercase tracking-wider mb-2 ml-1 font-bold">Tu Nombre</label>
-                            <div className="relative">
-                                <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                                    <UserIcon size={18} />
-                                </div>
-                                <input required={!isLoginView} type="text" name="nombre" value={formData.nombre} onChange={handleChange} placeholder="Ej: María José" className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 transition-all shadow-sm" />
-                            </div>
+                        <div className="relative">
+                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400"><UserIcon size={18} /></div>
+                            <input required={!isLoginView} type="text" name="nombre" value={formData.nombre} onChange={handleChange} placeholder="Tu Nombre" className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:border-cyan-400" />
                         </div>
                     )}
-                    <div>
-                        <label className="block text-xs text-gray-500 uppercase tracking-wider mb-2 ml-1 font-bold">Email</label>
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                                <Mail size={18} />
-                            </div>
-                            <input required type="email" name="email" value={formData.email} onChange={handleChange} placeholder="correo@ejemplo.com" className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 transition-all shadow-sm" />
-                        </div>
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400"><Mail size={18} /></div>
+                        <input required type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:border-cyan-400" />
                     </div>
-                    <div>
-                        <label className="block text-xs text-gray-500 uppercase tracking-wider mb-2 ml-1 font-bold">Contraseña</label>
-                        <div className="relative">
-                            <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400">
-                                <Lock size={18} />
-                            </div>
-                            <input required type="password" name="password" value={formData.password} onChange={handleChange} placeholder="••••••••" className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-100 transition-all shadow-sm" />
-                        </div>
+                    <div className="relative">
+                        <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-400"><Lock size={18} /></div>
+                        <input required type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Contraseña" className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-3 pl-11 pr-4 text-sm focus:outline-none focus:border-cyan-400" />
                     </div>
-                    <button type="submit" className="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-4 rounded-2xl uppercase tracking-widest transition-all hover:-translate-y-1 shadow-lg shadow-gray-900/20 mt-2">
-                        {isLoginView ? 'Entrar' : 'Registrarse'}
-                    </button>
+                    <button type="submit" className="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-4 rounded-2xl uppercase tracking-widest transition-all shadow-lg mt-2">{isLoginView ? 'Entrar' : 'Registrarse'}</button>
                 </form>
-
                 <div className="mt-8 text-center text-sm text-gray-600">
-                    {isLoginView ? '¿No tienes una cuenta?' : '¿Ya tienes una cuenta?'}
-                    <button onClick={() => setIsLoginView(!isLoginView)} className="ml-2 font-bold text-pink-600 hover:text-pink-700 transition-colors">
-                        {isLoginView ? 'Regístrate aquí' : 'Inicia Sesión'}
-                    </button>
+                    {isLoginView ? '¿No tienes cuenta?' : '¿Ya tienes cuenta?'}
+                    <button onClick={() => setIsLoginView(!isLoginView)} className="ml-2 font-bold text-pink-600 hover:text-pink-700">{isLoginView ? 'Regístrate' : 'Inicia Sesión'}</button>
                 </div>
-                <div className="mt-6 text-center">
-                    <Link to="/" className="text-xs text-gray-400 hover:text-gray-600 underline">Volver a la tienda</Link>
-                </div>
+                <div className="mt-6 text-center"><Link to="/" className="text-xs text-gray-400 hover:text-gray-600 underline">Volver a la tienda</Link></div>
             </div>
         </div>
     );
