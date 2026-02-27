@@ -30,12 +30,12 @@ const User = () => {
     const [savingProfile, setSavingProfile] = useState(false);
 
     const [formData, setFormData] = useState({ nombre: '', email: '', password: '' });
+    
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
     const handleProfileChange = (e) => setProfileData({ ...profileData, [e.target.name]: e.target.value });
 
     const BASE_URL = import.meta.env.MODE === 'production' ? 'https://tienda-backend-fn64.onrender.com' : 'http://127.0.0.1:8000';
 
-    // Función para expandir y cargar detalles enviando el TOKEN
     const toggleOrderDetails = async (orderId, orderNumber) => {
         if (expandedOrderId === orderId) {
             setExpandedOrderId(null);
@@ -46,16 +46,17 @@ const User = () => {
         setExpandedOrderId(orderId);
         setOrderDetails(null); 
         try {
-            const token = localStorage.getItem('access_token'); // OBTENEMOS EL TOKEN
+            const token = localStorage.getItem('access_token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
             const res = await axios.get(`${BASE_URL}/api/track/`, { 
                 params: { code: orderNumber },
-                headers: { Authorization: `Bearer ${token}` } // LO ENVIAMOS A DJANGO
+                headers: headers
             });
             if (res.data.success) {
                 setOrderDetails(res.data);
             }
         } catch (e) {
-            console.error("Error cargando detalles del pedido");
+            console.error("Error cargando detalles del pedido", e);
         }
     };
 
@@ -77,9 +78,10 @@ const User = () => {
         setSavingProfile(true);
         try {
             const token = localStorage.getItem('access_token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
             await axios.post(`${BASE_URL}/api/profile/update/`, 
                 { email: user.email, ...profileData },
-                { headers: { Authorization: `Bearer ${token}` } }
+                { headers: headers }
             );
             alert("¡Tus datos han sido actualizados con éxito!");
             setActiveTab('pedidos');
@@ -93,9 +95,10 @@ const User = () => {
         setIsRetryingPayment(true);
         try {
             const token = localStorage.getItem('access_token');
+            const headers = token ? { Authorization: `Bearer ${token}` } : {};
             const response = await axios.post(`${BASE_URL}/api/payment/retry/`, 
                 { order_id: orderId, email: user.email },
-                { headers: { Authorization: `Bearer ${token}` } }
+                { headers: headers }
             );
             if (response.data.url) {
                 window.location.href = response.data.url;
@@ -111,17 +114,14 @@ const User = () => {
         if (user && user.email) {
             const fetchData = async () => {
                 setLoadingData(true);
-                const token = localStorage.getItem('access_token');
-                const config = { headers: { Authorization: `Bearer ${token}` } };
                 try {
-                    const resOrders = await axios.get(`${BASE_URL}/api/orders/`, { 
-                        params: { email: user.email }, ...config 
-                    });
+                    const token = localStorage.getItem('access_token');
+                    const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+                    
+                    const resOrders = await axios.get(`${BASE_URL}/api/orders/`, { params: { email: user.email }, ...config });
                     setOrders(resOrders.data);
 
-                    const resFavs = await axios.get(`${BASE_URL}/api/favorites/`, { 
-                        params: { email: user.email }, ...config 
-                    });
+                    const resFavs = await axios.get(`${BASE_URL}/api/favorites/`, { params: { email: user.email }, ...config });
                     const formattedFavs = resFavs.data.slice(0, 4).map(item => ({
                         ...item,
                         priceFormatted: new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(item.price),
@@ -129,9 +129,7 @@ const User = () => {
                     }));
                     setFavoritesPreview(formattedFavs);
 
-                    const resProfile = await axios.get(`${BASE_URL}/api/profile/`, { 
-                        params: { email: user.email }, ...config 
-                    });
+                    const resProfile = await axios.get(`${BASE_URL}/api/profile/`, { params: { email: user.email }, ...config });
                     setProfileData(resProfile.data);
 
                 } catch (error) {
@@ -156,47 +154,52 @@ const User = () => {
                                 <div className="w-24 h-24 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-orange-200 shadow-sm">
                                     <UserIcon size={48} />
                                 </div>
-                                <h2 className="text-xl font-bold text-gray-900 mb-1 italic">¡Hola, {profileData.nombre?.split(' ')[0] || 'Cata'}!</h2>
+                                <h2 className="text-xl font-bold text-gray-900 mb-1">¡Hola, {profileData.nombre?.split(' ')[0] || 'Cliente'}!</h2>
                                 <p className="text-gray-500 text-xs mb-8 break-all font-medium">{user.email}</p>
 
                                 <div className="space-y-3">
-                                    <button onClick={() => setActiveTab('pedidos')} className={`w-full flex items-center justify-center gap-2 p-4 rounded-2xl text-sm font-bold transition-all border ${activeTab === 'pedidos' ? 'bg-indigo-600 text-white border-indigo-600 shadow-lg shadow-indigo-100' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-100'}`} >
-                                        <Package size={18} /> Mis Pedidos
+                                    <button onClick={() => setActiveTab('pedidos')} className={`w-full flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-bold transition-colors border ${activeTab === 'pedidos' ? 'bg-indigo-50 text-indigo-700 border-indigo-100' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-100'}`} >
+                                        <Package size={16} /> Mis Pedidos
                                     </button>
-                                    <button onClick={() => setActiveTab('ajustes')} className={`w-full flex items-center justify-center gap-2 p-4 rounded-2xl text-sm font-bold transition-all border ${activeTab === 'ajustes' ? 'bg-cyan-600 text-white border-cyan-600 shadow-lg shadow-cyan-100' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-100'}`} >
-                                        <Settings size={18} /> Ajustar Datos
+                                    <button onClick={() => setActiveTab('ajustes')} className={`w-full flex items-center justify-center gap-2 p-3 rounded-xl text-sm font-bold transition-colors border ${activeTab === 'ajustes' ? 'bg-cyan-50 text-cyan-800 border-cyan-100' : 'bg-gray-50 text-gray-700 hover:bg-gray-100 border-gray-100'}`} >
+                                        <Settings size={16} /> Ajustar Datos
                                     </button>
-                                    <button onClick={() => { logout(); navigate('/'); }} className="w-full flex items-center justify-center gap-2 text-pink-600 text-sm font-bold py-4 hover:bg-pink-50 rounded-2xl transition-colors border border-pink-100 mt-8">
-                                        <LogOut size={18} /> Cerrar Sesión
+                                    <button onClick={() => { logout(); navigate('/'); }} className="w-full flex items-center justify-center gap-2 text-pink-600 text-sm font-bold py-3 hover:bg-pink-50 rounded-xl transition-colors border border-pink-100 mt-8">
+                                        <LogOut size={16} /> Cerrar Sesión
                                     </button>
                                 </div>
                             </div>
 
                             <div className="w-full md:w-2/3 flex flex-col gap-10">
                                 
-                                {activeTab === 'pedidos' ? (
+                                {activeTab === 'pedidos' && (
                                     <section className="animate-in slide-in-from-right duration-300">
                                         <h3 className="text-lg font-bold text-gray-800 mb-6 uppercase tracking-wider flex items-center gap-2">
-                                            <Package className="text-indigo-600" /> Historial de Compras
+                                            <Package className="text-cyan-500" /> Historial de Compras
                                         </h3>
                                         
                                         <div className="mb-6 bg-pink-50 border border-pink-100 p-4 rounded-xl text-pink-900 flex items-start gap-3">
                                             <Clock3 className="text-pink-400 mt-0.5" size={20} />
-                                            <p className="text-[11px] leading-relaxed italic">Nota: Las órdenes en estado <b>Pendiente</b> por más de 6 horas se cancelan automáticamente.</p>
+                                            <p className="text-xs leading-relaxed">Nota: Las órdenes que permanezcan en estado <span className="font-bold">Pendiente</span> por más de 6 horas se cancelan automáticamente.</p>
                                         </div>
 
-                                        <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-                                            {orders.length === 0 ? (
-                                                <div className="bg-gray-50 rounded-3xl p-10 text-center border-2 border-dashed border-gray-200">
-                                                    <p className="text-sm text-gray-400 mb-4">Aún no tienes pedidos registrados.</p>
-                                                    <Link to="/" className="text-indigo-600 font-bold hover:underline text-sm uppercase tracking-widest">Ir a la Tienda</Link>
-                                                </div>
-                                            ) : (
-                                                orders.map((order) => (
-                                                    <div key={order.id} className={`border rounded-[1.5rem] overflow-hidden transition-all ${order.is_expired ? 'opacity-50 grayscale' : 'hover:border-indigo-200 shadow-sm'}`}>
+                                        {loadingData && (
+                                            <p className="text-sm text-gray-500">Cargando...</p>
+                                        )}
+
+                                        {!loadingData && orders.length === 0 && (
+                                            <div className="bg-gray-50 rounded-2xl p-6 text-center border border-gray-100">
+                                                <p className="text-sm text-gray-500 italic">No registras pedidos aún.</p>
+                                            </div>
+                                        )}
+
+                                        {!loadingData && orders.length > 0 && (
+                                            <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
+                                                {orders.map((order) => (
+                                                    <div key={order.id} className={`border rounded-2xl overflow-hidden transition-all ${order.is_expired ? 'bg-gray-100 opacity-60' : 'bg-white hover:border-indigo-200 shadow-sm'}`}>
                                                         <div 
                                                             onClick={() => toggleOrderDetails(order.id, order.order_number)}
-                                                            className="p-5 flex justify-between items-center bg-white cursor-pointer hover:bg-gray-50/50 transition-colors"
+                                                            className="p-4 flex justify-between items-center cursor-pointer hover:bg-gray-50 transition-colors"
                                                         >
                                                             <div className="space-y-1">
                                                                 <p className="font-black text-gray-900 tracking-tight">{order.order_number}</p>
@@ -214,17 +217,17 @@ const User = () => {
                                                         </div>
 
                                                         {expandedOrderId === order.id && (
-                                                            <div className="p-5 pt-0 bg-gray-50/30 border-t border-gray-50 animate-in slide-in-from-top duration-200">
+                                                            <div className="p-4 pt-0 bg-gray-50/30 border-t border-gray-100 animate-in slide-in-from-top duration-200">
                                                                 {!orderDetails ? (
                                                                     <div className="flex justify-center py-4"><Loader2 className="animate-spin text-indigo-300" size={20} /></div>
                                                                 ) : (
-                                                                    <div className="space-y-5 mt-4">
-                                                                        <div className="bg-white p-4 rounded-xl border border-gray-100 shadow-sm">
-                                                                            <p className="text-[9px] font-black uppercase text-gray-400 mb-2 tracking-widest italic">Artículos Comprados</p>
-                                                                            <div className="space-y-2">
-                                                                                {orderDetails.items.map((item, idx) => (
-                                                                                    <div key={idx} className="flex justify-between text-[11px] border-b border-gray-50 last:border-0 pb-1">
-                                                                                        <span className="text-gray-700 font-medium italic">x{item.quantity} {item.name}</span>
+                                                                    <div className="space-y-4 mt-4">
+                                                                        <div className="bg-white p-4 rounded-xl border border-gray-100">
+                                                                            <p className="text-[9px] font-black uppercase text-gray-400 mb-2">Artículos Comprados</p>
+                                                                            <div className="space-y-1">
+                                                                                {(orderDetails.items || []).map((item, idx) => (
+                                                                                    <div key={idx} className="flex justify-between text-[11px] border-b border-gray-50 pb-1 last:border-0">
+                                                                                        <span className="text-gray-700 font-medium">x{item.quantity} {item.name}</span>
                                                                                         <span className="text-gray-500 font-bold">${new Intl.NumberFormat('es-CL').format(item.price * item.quantity)}</span>
                                                                                     </div>
                                                                                 ))}
@@ -243,12 +246,13 @@ const User = () => {
                                                                                 </div>
                                                                             </div>
                                                                             <div className="bg-white p-4 rounded-2xl border border-gray-100 flex flex-col justify-center items-center text-center shadow-inner">
-                                                                                <p className="text-[9px] text-gray-400 uppercase font-black mb-1 italic">N° Seguimiento</p>
-                                                                                <p className="text-sm font-black text-indigo-900 tracking-wider">
+                                                                                <p className="text-[9px] text-gray-400 uppercase font-black mb-1">N° Seguimiento</p>
+                                                                                <p className="text-sm font-black text-gray-900 tracking-wider">
                                                                                     {orderDetails.tracking_number}
                                                                                 </p>
                                                                                 {order.raw_status === 'pendiente' && !order.is_expired && (
-                                                                                    <button onClick={(e) => { e.stopPropagation(); handleRetryPayment(order.id); }} className="mt-3 w-full py-2 bg-pink-600 text-white font-bold rounded-xl text-[10px] uppercase tracking-widest hover:bg-pink-700 transition-transform active:scale-95 shadow-md shadow-pink-100">
+                                                                                    <button onClick={(e) => { e.stopPropagation(); handleRetryPayment(order.id); }} disabled={isRetryingPayment} className="mt-3 w-full py-2 bg-pink-600 text-white font-bold rounded-xl text-[10px] uppercase tracking-widest hover:bg-pink-700 transition-transform active:scale-95 flex items-center justify-center gap-2">
+                                                                                        {isRetryingPayment ? <Loader2 size={14} className="animate-spin" /> : <CreditCard size={14} />}
                                                                                         Completar Pago
                                                                                     </button>
                                                                                 )}
@@ -259,14 +263,16 @@ const User = () => {
                                                             </div>
                                                         )}
                                                     </div>
-                                                ))
-                                            )}
-                                        </div>
+                                                ))}
+                                            </div>
+                                        )}
                                     </section>
-                                ) : (
+                                )}
+
+                                {activeTab === 'ajustes' && (
                                     <section className="animate-in slide-in-from-right duration-300">
                                         <h3 className="text-lg font-bold text-gray-800 mb-6 uppercase tracking-wider flex items-center gap-2">
-                                            <Settings className="text-cyan-500" /> Ajustar mis Datos
+                                            <Settings className="text-cyan-600" /> Ajustar mis Datos
                                         </h3>
                                         <form onSubmit={handleSaveProfile} className="space-y-5 bg-gray-50/50 p-6 rounded-3xl border border-gray-100">
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -274,11 +280,11 @@ const User = () => {
                                                     <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Nombre Completo</label>
                                                     <div className="relative">
                                                         <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={16} />
-                                                        <input type="text" name="nombre" value={profileData.nombre} onChange={handleProfileChange} className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-cyan-100 outline-none transition-all italic" />
+                                                        <input type="text" name="nombre" value={profileData.nombre} onChange={handleProfileChange} className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-cyan-100 outline-none transition-all" />
                                                     </div>
                                                 </div>
                                                 <div className="space-y-1">
-                                                    <label className="text-[10px] font-black uppercase text-gray-400 ml-1">WhatsApp / Teléfono</label>
+                                                    <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Teléfono / WhatsApp</label>
                                                     <div className="relative">
                                                         <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-300" size={16} />
                                                         <input type="text" name="telefono" value={profileData.telefono} onChange={handleProfileChange} placeholder="+56 9..." className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-cyan-100 outline-none transition-all" />
@@ -308,11 +314,11 @@ const User = () => {
 
                                 <div className="animate-in fade-in duration-700 delay-200">
                                     <div className="flex justify-between items-center mb-6 px-1">
-                                        <h3 className="text-lg font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2 italic">
+                                        <h3 className="text-lg font-bold text-gray-800 uppercase tracking-widest flex items-center gap-2">
                                             <Heart className="text-pink-500 fill-pink-500" size={22} /> Mis Favoritos
                                         </h3>
                                         <Link to="/favoritos" className="text-xs font-black text-indigo-600 hover:text-indigo-800 transition-colors uppercase tracking-tighter">
-                                            Catálogo Completo
+                                            Ver Todo el Catálogo
                                         </Link>
                                     </div>
                                     
@@ -324,9 +330,9 @@ const User = () => {
                                                 <div key={fav.id} className="group relative aspect-square rounded-[1.5rem] overflow-hidden bg-gray-100 shadow-sm border border-pink-50">
                                                     <img src={fav.imageUrl} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" alt={fav.name} />
                                                     <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-300 flex flex-col justify-end p-3">
-                                                        <p className="text-[9px] text-white font-black truncate mb-1 uppercase tracking-tighter italic">{fav.name}</p>
-                                                        <p className="text-[11px] text-pink-300 font-bold mb-2 tracking-widest">{fav.priceFormatted}</p>
-                                                        <button onClick={(e) => { e.preventDefault(); addToCart(fav); }} className="w-full bg-white text-indigo-600 text-[10px] font-black py-2 rounded-xl flex items-center justify-center gap-1.5 hover:bg-indigo-50 shadow-xl transition-transform active:scale-95 uppercase tracking-tighter">
+                                                        <p className="text-[9px] text-white font-black truncate mb-1 uppercase tracking-tighter">{fav.name}</p>
+                                                        <p className="text-[11px] text-pink-300 font-bold mb-2">{fav.priceFormatted}</p>
+                                                        <button onClick={(e) => { e.preventDefault(); addToCart(fav); }} className="w-full bg-white text-indigo-600 text-[10px] font-black py-2 rounded-xl flex items-center justify-center gap-1.5 hover:bg-indigo-50 shadow-xl transition-transform active:scale-95">
                                                             <ShoppingCart size={12} /> Al Carro
                                                         </button>
                                                     </div>
@@ -344,18 +350,18 @@ const User = () => {
     }
 
     return (
-        <div className="min-h-screen bg-[#b3f3f5] py-12 px-4 flex items-center justify-center italic">
+        <div className="min-h-screen bg-[#b3f3f5] py-12 px-4 flex items-center justify-center">
             <div className="max-w-md w-full bg-white rounded-[3rem] shadow-2xl p-10 animate-in zoom-in-95 duration-500">
                 <div className="text-center mb-10">
                     <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-[#feecd4] text-orange-500 mb-6 shadow-sm border-4 border-white">
                         {isLoginView ? <LogIn size={36} /> : <UserPlus size={36} />}
                     </div>
-                    <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tighter italic">
+                    <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tighter">
                         {isLoginView ? '¡Bienvenida!' : 'Crear Cuenta'}
                     </h2>
                 </div>
 
-                <form onSubmit={handleSubmit} className="space-y-5 font-sans">
+                <form onSubmit={handleSubmit} className="space-y-5">
                     {!isLoginView && (
                         <div className="relative group">
                             <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={20} />
@@ -375,7 +381,7 @@ const User = () => {
                     </button>
                 </form>
 
-                <div className="mt-10 text-center text-sm font-sans not-italic">
+                <div className="mt-10 text-center text-sm">
                     <p className="text-gray-400 font-medium">{isLoginView ? '¿No tienes cuenta todavía?' : '¿Ya eres parte?'}</p>
                     <button onClick={() => setIsLoginView(!isLoginView)} className="mt-2 font-black text-pink-600 uppercase text-xs tracking-widest">
                         {isLoginView ? 'Crear mi cuenta gratis' : 'Inicia Sesión aquí'}

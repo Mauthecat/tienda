@@ -8,7 +8,6 @@ from datetime import timedelta
 from django.utils import timezone
 import hmac
 import hashlib
-import uuid
 import requests
 import os
 from urllib.parse import urlencode
@@ -206,10 +205,8 @@ def payment_final_redirect(request):
         return redirect(frontend_url)
     return redirect("https://policromica.vercel.app")
 
-# NUEVA FUNCIÓN: REINTENTAR PAGO DE ORDEN EXISTENTE
 @csrf_exempt
 def retry_payment(request):
-    """Recibe un ID de orden existente, verifica que esté PENDIENTE y genera un nuevo token de Flow"""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -219,10 +216,8 @@ def retry_payment(request):
             if not order_id or not email:
                 return JsonResponse({'error': 'Faltan datos'}, status=400)
 
-            # Buscamos la orden asegurándonos que pertenezca al usuario y esté PENDIENTE
             order = Order.objects.get(id=order_id, user__email=email, status=Order.StatusChoices.PENDING)
             
-            # Verificamos si la orden ya expiró (más de 6 horas)
             expiration_threshold = timezone.now() - timedelta(hours=6)
             if order.created_at < expiration_threshold:
                 return JsonResponse({'error': 'Esta orden ha expirado por inactividad. Por favor, realiza un nuevo pedido.'}, status=400)
@@ -268,11 +263,8 @@ def retry_payment(request):
     return JsonResponse({'error': 'Método no permitido'}, status=405)
 
 
-# --- FUNCIONES PARA EL PERFIL, AJUSTES Y RASTREO ---
-
 @csrf_exempt
 def get_user_profile(request):
-    """Obtiene los datos del perfil para editarlos"""
     email = request.GET.get('email')
     if not email:
         return JsonResponse({'error': 'Faltan datos'}, status=400)
@@ -290,7 +282,6 @@ def get_user_profile(request):
 
 @csrf_exempt
 def update_user_profile(request):
-    """Guarda los cambios del perfil en la BD"""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
@@ -335,7 +326,6 @@ def get_user_orders(request):
     orders = Order.objects.filter(user__email=email).order_by('-created_at')
     data = []
     
-    # Lógica para determinar si la orden expiró
     expiration_threshold = timezone.now() - timedelta(hours=6)
 
     for o in orders:
@@ -343,12 +333,12 @@ def get_user_orders(request):
         is_expired = is_pending and o.created_at < expiration_threshold
 
         data.append({
-            'id': o.id, # Necesitamos el ID crudo para el reintento
+            'id': o.id,
             'order_number': f"POLI-{o.id}",
             'status': o.get_status_display(),
             'total': float(o.total_amount),
             'date': o.created_at.strftime("%d/%m/%Y"),
-            'raw_status': o.status, # 'pendiente', 'pagado', etc.
+            'raw_status': o.status,
             'is_expired': is_expired
         })
     return JsonResponse(data, safe=False)
@@ -356,24 +346,32 @@ def get_user_orders(request):
 
 @csrf_exempt
 def track_order(request):
-    """Busca una orden por su código POLI-XXX con protección de privacidad y lista de productos"""
     order_code = request.GET.get('code', '').upper().replace('POLI-', '')
     try:
-        # Cargamos la orden con sus items asociados
         order = Order.objects.select_related('user', 'shipping_address').get(id=order_code)
         
-        # SEGURIDAD: Solo el dueño ve datos privados si está logueado
-        is_owner = request.user.is_authenticated and request.user.email == order.user.email
-        
-        # Textos solicitados por Mau
+        is_owner = False
+        auth_header = request.headers.get('Authorization')
+        if auth_header and auth_header.startswith('Bearer '):
+            from rest_framework_simplejwt.tokens import AccessToken
+            try:
+                token_string = auth_header.split(' ')[1]
+                if token_string and token_string != 'null': # Protección extra contra tokens nulos
+                    token = AccessToken(token_string)
+                    user_id = token['user_id']
+                    user = User.objects.get(id=user_id)
+                    if user.email == order.user.email:
+                        is_owner = True
+            except Exception as e:
+                pass 
+
         courier = "Pedido en preparación"
         tracking_number = "Pendiente de envío"
         
         if hasattr(order, 'shipment'):
-            courier = order.shipment.courier or "Bluexpress"
+            courier = order.shipment.courier or courier
             tracking_number = order.shipment.tracking_number or tracking_number
 
-        # PREPARAMOS EL LISTADO DE PRODUCTOS
         items_list = []
         for item in order.items.all():
             items_list.append({
@@ -382,7 +380,6 @@ def track_order(request):
                 'price': float(item.unit_price)
             })
 
-        # Datos básicos (Públicos)
         response_data = {
             'success': True,
             'id': order.id,
@@ -391,10 +388,9 @@ def track_order(request):
             'status': order.get_status_display(),
             'date': order.created_at.strftime("%d/%m/%Y"),
             'is_owner': is_owner,
-            'items': items_list, # Enviamos los productos siempre para que vean qué compraron
+            'items': items_list,
         }
 
-        # Datos sensibles (Privados: solo para el dueño)
         if is_owner:
             response_data.update({
                 'customer_name': order.user.first_name or order.user.username,
@@ -403,7 +399,7 @@ def track_order(request):
                 'tracking_number': tracking_number,
                 'total': float(order.total_amount),
                 'raw_status': order.status,
-                'is_expired': False # La lógica de expiración se maneja en get_user_orders
+                'is_expired': False 
             })
 
         return JsonResponse(response_data)
@@ -465,7 +461,6 @@ def toggle_favorite(request):
 
 @csrf_exempt
 def submit_contact_message(request):
-    """Guarda un mensaje de contacto en la base de datos"""
     if request.method == 'POST':
         try:
             data = json.loads(request.body)
