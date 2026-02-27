@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Truck, Search, Package, HelpCircle, ChevronDown, User, MapPin, CreditCard, Loader2, Clock3, ShoppingCart } from 'lucide-react';
 import axios from 'axios';
+import { useAuth } from '../context/AuthContext'; // AÑADIDO: Importamos el contexto de usuario
 
 const Envios = () => {
+    const { user } = useAuth(); // AÑADIDO: Obtenemos el usuario actual
     const [trackingCode, setTrackingCode] = useState('');
     const [trackingResult, setTrackingResult] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -20,13 +22,20 @@ const Envios = () => {
         setTrackingResult(null);
 
         try {
-            const token = localStorage.getItem('access_token');
-            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            // AÑADIDO: Solo intentamos buscar el token si el usuario existe en el contexto
+            let headers = {};
+            if (user) {
+                const token = localStorage.getItem('access_token');
+                if (token) {
+                    headers = { Authorization: `Bearer ${token}` };
+                }
+            }
 
             const res = await axios.get(`${BASE_URL}/api/track/`, { 
                 params: { code: trackingCode },
                 headers: headers
             });
+            
             if (res.data.success) {
                 setTrackingResult(res.data);
             } else {
@@ -43,8 +52,14 @@ const Envios = () => {
         if (!trackingResult) return;
         setIsRetryingPayment(true);
         try {
-            const token = localStorage.getItem('access_token');
-            const headers = token ? { Authorization: `Bearer ${token}` } : {};
+            let headers = {};
+            if (user) {
+                const token = localStorage.getItem('access_token');
+                if (token) {
+                    headers = { Authorization: `Bearer ${token}` };
+                }
+            }
+            
             const response = await axios.post(`${BASE_URL}/api/payment/retry/`, 
                 { order_id: trackingResult.id, email: trackingResult.email },
                 { headers: headers }
@@ -72,6 +87,7 @@ const Envios = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
 
+                    {/* COLUMNA 1: RASTREO */}
                     <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-cyan-100 h-fit">
                         <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                             <Search className="text-cyan-500" /> Rastrea tu Pedido
@@ -102,6 +118,13 @@ const Envios = () => {
                         {trackingResult && (
                             <div className="mt-8 p-6 bg-white rounded-3xl border border-gray-100 shadow-xl animate-in zoom-in-95 duration-500 relative overflow-hidden">
                                 
+                                {trackingResult.is_expired && (
+                                    <div className="mb-6 bg-gray-100 border border-gray-200 p-4 rounded-xl text-gray-800 flex items-start gap-3">
+                                        <Clock3 className="text-gray-400 mt-0.5" size={20} />
+                                        <p className="text-xs">Esta orden ha estado <span className="font-bold">Pendiente</span> por más de 6 horas y ha expirado. Por favor, realiza un nuevo pedido.</p>
+                                    </div>
+                                )}
+
                                 <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100 relative z-10">
                                     <div className="flex items-center gap-3">
                                         <div className="bg-pink-100 p-2 rounded-xl"><Package className="text-pink-500" size={24} /></div>
@@ -188,6 +211,7 @@ const Envios = () => {
                         )}
                     </div>
 
+                    {/* COLUMNA 2: PREGUNTAS FRECUENTES */}
                     <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-pink-100">
                         <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
                             <HelpCircle className="text-pink-500" /> Preguntas Frecuentes
