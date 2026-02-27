@@ -33,14 +33,16 @@ const Envios = () => {
         }
     };
 
-    // FUNCIÓN PARA REINTENTAR PAGO DESDE EL RASTREADOR
     const handleRetryPayment = async () => {
         if (!trackingResult) return;
         setIsRetryingPayment(true);
         try {
-            const response = await axios.post(`${BASE_URL}/api/payment/retry/`, { order_id: trackingResult.id, email: trackingResult.email });
+            const response = await axios.post(`${BASE_URL}/api/payment/retry/`, { 
+                order_id: trackingResult.id, 
+                email: trackingResult.email 
+            });
             if (response.data.url) {
-                window.location.href = response.data.url; // Redirigimos a Flow Sandbox
+                window.location.href = response.data.url;
             }
         } catch (error) {
             console.error("Error reintentando pago desde track", error);
@@ -55,7 +57,7 @@ const Envios = () => {
             <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-12">
                     <h1 className="text-3xl font-bold text-gray-900 uppercase tracking-widest mb-4 flex items-center justify-center gap-3">
-                        <Truck className="text-pink-500" size={32} /> Center de Envíos
+                        <Truck className="text-pink-500" size={32} /> Centro de Envíos
                     </h1>
                     <p className="text-gray-500">Rastrea tu paquete en tiempo real o resuelve tus dudas.</p>
                 </div>
@@ -90,15 +92,12 @@ const Envios = () => {
 
                         {error && <p className="mt-6 text-pink-600 text-sm font-medium p-4 bg-pink-50 rounded-xl border border-pink-100">{error}</p>}
                         
-                        {/* RESULTADO COMPLETO DEL RASTREO */}
                         {trackingResult && (
                             <div className="mt-8 p-6 bg-gray-50 rounded-2xl border border-gray-100 animate-in fade-in zoom-in duration-300 relative">
-                                
-                                {/* ALERTA DE ORDEN EXPIRADA EN EL TRACKING */}
                                 {trackingResult.is_expired && (
                                     <div className="mb-6 bg-gray-100 border border-gray-200 p-4 rounded-xl text-gray-800 flex items-start gap-3">
                                         <Clock3 className="text-gray-400 mt-0.5" size={20} />
-                                        <p className="text-xs">Esta orden ha estado <span className="font-bold">Pendiente</span> por más de 6 horas y ha expirado. Por seguridad y control de stock, no es posible reintentar el pago. Por favor, realiza un nuevo pedido.</p>
+                                        <p className="text-xs">Esta orden ha estado <span className="font-bold">Pendiente</span> por más de 6 horas y ha expirado. Por favor, realiza un nuevo pedido.</p>
                                     </div>
                                 )}
 
@@ -111,7 +110,6 @@ const Envios = () => {
                                         </div>
                                     </div>
                                     <div className="text-right flex flex-col items-end gap-2">
-                                        {/* ESTADO O BOTÓN DE PAGO */}
                                         {trackingResult.is_expired ? (
                                             <span className="bg-gray-200 text-gray-800 text-[10px] md:text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-widest">Expirado</span>
                                         ) : trackingResult.raw_status === 'pendiente' ? (
@@ -139,9 +137,12 @@ const Envios = () => {
                                             <p className="font-medium text-gray-900">{trackingResult.customer_name}</p>
                                         </div>
                                     </div>
-                                    <div>
-                                        <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Fecha Compra</p>
-                                        <p className="font-medium text-gray-900 ml-6">{trackingResult.date}</p>
+                                    <div className="flex items-start gap-2">
+                                        <Clock3 size={16} className="text-gray-400 mt-0.5" />
+                                        <div>
+                                            <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold">Fecha Compra</p>
+                                            <p className="font-medium text-gray-900">{trackingResult.date}</p>
+                                        </div>
                                     </div>
                                     <div className="md:col-span-2 flex items-start gap-2">
                                         <MapPin size={16} className="text-gray-400 mt-0.5 min-w-[16px]" />
@@ -167,14 +168,47 @@ const Envios = () => {
                                         </p>
                                     </div>
                                 </div>
-
                             </div>
                         )}
                     </div>
 
-                    {/* COLUMNA 2: FAQ (igual que antes) */}
+                    {/* COLUMNA 2: PREGUNTAS FRECUENTES */}
                     <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-pink-100">
-                        {/* ... contenido FAQ ... */}
+                        <h2 className="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                            <HelpCircle className="text-pink-500" /> Preguntas Frecuentes
+                        </h2>
+                        
+                        <div className="space-y-4">
+                            <details className="group border border-gray-100 rounded-2xl bg-gray-50 cursor-pointer">
+                                <summary className="flex justify-between items-center font-medium cursor-pointer list-none p-5 text-gray-800">
+                                    <span>¿Por qué medio realizan los envíos?</span>
+                                    <span className="transition group-open:rotate-180"><ChevronDown size={18} /></span>
+                                </summary>
+                                <div className="text-gray-600 text-sm mt-2 p-5 pt-0 leading-relaxed border-t border-gray-100">
+                                    Realizamos nuestros envíos a todo Chile principalmente a través de BlueExpress, Starken y Chilexpress. 
+                                </div>
+                            </details>
+
+                            <details className="group border border-gray-100 rounded-2xl bg-gray-50 cursor-pointer">
+                                <summary className="flex justify-between items-center font-medium cursor-pointer list-none p-5 text-gray-800">
+                                    <span>¿Cuánto tarda en llegar mi pedido?</span>
+                                    <span className="transition group-open:rotate-180"><ChevronDown size={18} /></span>
+                                </summary>
+                                <div className="text-gray-600 text-sm mt-2 p-5 pt-0 leading-relaxed border-t border-gray-100">
+                                    Una vez confirmado el pago, tardamos entre 1 a 3 días hábiles en procesar tu pedido. El tiempo de tránsito suele ser de 2 a 5 días hábiles.
+                                </div>
+                            </details>
+
+                            <details className="group border border-gray-100 rounded-2xl bg-gray-50 cursor-pointer">
+                                <summary className="flex justify-between items-center font-medium cursor-pointer list-none p-5 text-gray-800">
+                                    <span>¿Qué pasa si mi pedido expira?</span>
+                                    <span className="transition group-open:rotate-180"><ChevronDown size={18} /></span>
+                                </summary>
+                                <div className="text-gray-600 text-sm mt-2 p-5 pt-0 leading-relaxed border-t border-gray-100">
+                                    Si realizaste un pedido pero no concretaste el pago en 6 horas, este expira automáticamente para liberar el stock de los productos. Deberás realizar un nuevo pedido.
+                                </div>
+                            </details>
+                        </div>
                     </div>
 
                 </div>
