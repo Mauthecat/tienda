@@ -355,41 +355,43 @@ def get_user_orders(request):
 
 @csrf_exempt
 def track_order(request):
-    """Devuelve los datos completos del pedido para la vista de Envios"""
+    """Busca una orden por su código POLI-XXX con protección de privacidad"""
     order_code = request.GET.get('code', '').upper().replace('POLI-', '')
     try:
-        # Seleccionamos también el usuario y la dirección
+        # Cargamos la orden con su usuario y dirección de envío
         order = Order.objects.select_related('user', 'shipping_address').get(id=order_code)
         
-        courier = "Pendiente de asignación"
-        tracking_number = "N/A"
+        # SEGURIDAD: Solo el dueño ve datos privados si está logueado
+        is_owner = request.user.is_authenticated and request.user.email == order.user.email
         
-        # Revisamos si el admin ya le asignó un código de envío (Shipment)
+        # Textos solicitados por Mau
+        courier = "Pedido en preparación"
+        tracking_number = "Pendiente de envío"
+        
         if hasattr(order, 'shipment'):
-            courier = order.shipment.courier or courier
+            courier = order.shipment.courier or "Bluexpress"
             tracking_number = order.shipment.tracking_number or tracking_number
 
-        address_str = f"{order.shipping_address.street_address}, {order.shipping_address.city}" if order.shipping_address else "Retiro en tienda / No especificada"
-
-        # Verificamos si la orden ya expiró (más de 6 horas)
-        expiration_threshold = timezone.now() - timedelta(hours=6)
-        is_expired = order.status == Order.StatusChoices.PENDING and order.created_at < expiration_threshold
-
-        return JsonResponse({
+        # Datos Públicos (Cualquiera los ve)
+        response_data = {
             'success': True,
-            'id': order.id,
-            'email': order.user.email, # Necesitamos esto para el reintento desde el track
             'order_number': f"POLI-{order.id}",
             'status': order.get_status_display(),
-            'total': float(order.total_amount),
             'date': order.created_at.strftime("%d/%m/%Y"),
-            'customer_name': order.user.first_name or order.user.username,
-            'address': address_str,
-            'courier': courier,
-            'tracking_number': tracking_number,
-            'raw_status': order.status,
-            'is_expired': is_expired
-        })
+            'is_owner': is_owner,
+        }
+
+        # Datos Privados (Solo para el dueño)
+        if is_owner:
+            response_data.update({
+                'customer_name': order.user.first_name or order.user.username,
+                'address': f"{order.shipping_address.street_address}, {order.shipping_address.city}" if order.shipping_address else "No especificada",
+                'courier': courier,
+                'tracking_number': tracking_number,
+                'total': float(order.total_amount),
+            })
+
+        return JsonResponse(response_data)
     except (Order.DoesNotExist, ValueError):
         return JsonResponse({'success': False, 'error': 'Pedido no encontrado'})
     
