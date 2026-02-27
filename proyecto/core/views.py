@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
-from .models import Product, Order, OrderItem, Favorite, Address, Shipment
+from .models import Product, Order, OrderItem, Favorite, Address, Shipment, ContactMessage
 from datetime import timedelta
 from django.utils import timezone
 import hmac
@@ -442,6 +442,31 @@ def toggle_favorite(request):
                 return JsonResponse({'status': 'removed'}, status=200)
                 
             return JsonResponse({'status': 'added'}, status=201)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
+@csrf_exempt
+def submit_contact_message(request):
+    """Guarda un mensaje de contacto en la base de datos"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            nombre = data.get('nombre')
+            email = data.get('email')
+            asunto = data.get('asunto')
+            mensaje = data.get('mensaje')
+
+            if not all([nombre, email, asunto, mensaje]):
+                return JsonResponse({'error': 'Todos los campos son obligatorios'}, status=400)
+
+            ContactMessage.objects.create(
+                name=nombre,
+                email=email,
+                subject=asunto,
+                message=mensaje
+            )
+            return JsonResponse({'success': True, 'mensaje': 'Mensaje guardado con éxito'}, status=201)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
     return JsonResponse({'error': 'Método no permitido'}, status=405)

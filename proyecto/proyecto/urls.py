@@ -13,7 +13,8 @@ from core.views import (
     toggle_favorite,
     get_user_profile,
     update_user_profile,
-    retry_payment
+    retry_payment,
+    submit_contact_message
 )
 from django.conf import settings
 from django.conf.urls.static import static
@@ -38,7 +39,7 @@ urlpatterns = [
     path('api/favorites/', get_favorites, name='get_favorites'),
     path('api/favorites/toggle/', toggle_favorite, name='toggle_favorite'),
     
-    # --- RUTAS DE AJUSTES DE PERFIL ---
+    path('api/contact/', submit_contact_message, name='submit_contact_message'),
     path('api/profile/', get_user_profile, name='get_user_profile'),
     path('api/profile/update/', update_user_profile, name='update_user_profile'),
 ]

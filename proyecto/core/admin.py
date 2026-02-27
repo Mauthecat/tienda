@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import User, Category, Product, ProductImage, Order, OrderItem, Address, Shipment, Payment
+from .models import User, Category, Product, ProductImage, Order, OrderItem, Address, Shipment, Payment, ContactMessage
 
 # 1. Configuración para ver las imágenes DENTRO del producto
 class ProductImageInline(admin.TabularInline):
@@ -36,6 +36,13 @@ class OrderAdmin(admin.ModelAdmin):
     list_display = ('id', 'user', 'status', 'total_amount', 'created_at')
     list_filter = ('status', 'created_at')
     inlines = [OrderItemInline] # Ver los items dentro de la orden
+
+@admin.register(ContactMessage)
+class ContactMessageAdmin(admin.ModelAdmin):
+    list_display = ('subject', 'name', 'email', 'created_at', 'is_read')
+    list_filter = ('is_read', 'created_at')
+    search_fields = ('name', 'email', 'subject')
+    list_editable = ('is_read',) # Permite marcar como leído desde la lista
 
 # 5. Registros simples para el resto
 admin.site.register(User)
