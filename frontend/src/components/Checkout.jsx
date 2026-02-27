@@ -41,6 +41,9 @@ const Checkout = () => {
         ? 'https://tienda-backend-fn64.onrender.com'
         : 'http://127.0.0.1:8000';
 
+    // Helper para formatear dinero en CLP
+    const formatearDinero = (monto) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(monto);
+
     // AUTO-RELLENADO DE DATOS
     useEffect(() => {
         if (user && user.email) {
@@ -120,8 +123,6 @@ const Checkout = () => {
         );
     }
 
-    const formatearDinero = (monto) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(monto);
-
     return (
         <div className="min-h-screen bg-gray-50 pt-8 pb-16">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -133,13 +134,13 @@ const Checkout = () => {
                 {showAutoFillAlert && (
                     <div className="mb-6 bg-cyan-50 border border-cyan-200 text-cyan-800 px-4 py-3 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
                         <Info size={20} className="text-cyan-600" />
-                        <p className="text-sm font-medium">Hemos cargado tus datos guardados para acelerar tu compra. Por favor revísalos y selecciona tu región para calcular el envío.</p>
+                        <p className="text-sm font-medium">Hemos cargado tus datos guardados. Por favor revísalos y selecciona tu región para calcular el envío.</p>
                     </div>
                 )}
 
                 <div className="flex flex-col lg:flex-row gap-10">
 
-                    {/* FORMULARIO */}
+                    {/* COLUMNA IZQUIERDA: FORMULARIO */}
                     <div className="w-full lg:w-3/5">
                         <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
                             <h2 className="text-xl font-bold text-gray-900 mb-6 uppercase tracking-wider">Datos de Envío</h2>
@@ -191,32 +192,40 @@ const Checkout = () => {
                         </div>
                     </div>
 
-                    {/* RESUMEN DE ORDEN */}
+                    {/* COLUMNA DERECHA: RESUMEN DE ORDEN */}
                     <div className="w-full lg:w-2/5">
                         <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 sticky top-24">
                             <h2 className="text-xl font-bold text-gray-900 mb-6 uppercase tracking-wider">Tu Pedido</h2>
 
                             <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
-                                {cart.map(item => (
-                                    <div key={item.id} className="flex items-center justify-between gap-4">
-                                        <div className="flex items-center gap-4">
-                                            <div className="relative">
-                                                <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-xl border border-gray-100" />
-                                                <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                                                    {item.quantity}
-                                                </span>
+                                {cart.map(item => {
+                                    // REGLA DE LIMPIEZA: Si el precio es un string con "$", lo convertimos a número limpio.
+                                    const precioLimpio = typeof item.price === 'string' 
+                                        ? parseFloat(item.price.replace(/[^0-9.-]+/g,"")) 
+                                        : item.price;
+                                    
+                                    return (
+                                        <div key={item.id} className="flex items-center justify-between gap-4">
+                                            <div className="flex items-center gap-4">
+                                                <div className="relative">
+                                                    <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-xl border border-gray-100" />
+                                                    <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                                                        {item.quantity}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-800 line-clamp-1">{item.name}</p>
+                                                    {/* LÍNEA SOLICITADA: Muestra (Cantidad x Valor unitario) */}
+                                                    <p className="text-[10px] text-gray-400 font-bold italic">
+                                                       ({item.quantity} x {formatearDinero(precioLimpio)})
+                                                    </p>
+                                                </div>
                                             </div>
-                                            <div>
-                                                <p className="text-sm font-medium text-gray-800 line-clamp-1">{item.name}</p>
-                                                {/* LÍNEA SOLICITADA: Muestra (Cant x Valor) */}
-                                                <p className="text-[10px] text-gray-400 font-bold italic">
-                                                    ({item.quantity} x {formatearDinero(item.price)})
-                                                </p>
-                                            </div>
+                                            {/* Cálculo matemático garantizado sin NaN */}
+                                            <p className="text-sm font-bold text-gray-900">{formatearDinero(precioLimpio * item.quantity)}</p>
                                         </div>
-                                        <p className="text-sm font-bold text-gray-900">{formatearDinero(item.price * item.quantity)}</p>
-                                    </div>
-                                ))}
+                                    );
+                                })}
                             </div>
 
                             <div className="border-t border-gray-100 pt-4 space-y-3 mb-6">
@@ -248,7 +257,7 @@ const Checkout = () => {
                                 {isLoading ? 'Procesando...' : (shippingCost === 0 ? 'Selecciona Región' : 'Pagar Seguro')}
                             </button>
 
-                            <p className="text-xs text-gray-400 text-center mt-4 flex items-center justify-center gap-1">
+                            <p className="text-xs text-gray-400 text-center mt-4">
                                 Envío calculado según tarifas BlueExpress XS.
                             </p>
                         </div>
