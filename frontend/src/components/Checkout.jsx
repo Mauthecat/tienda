@@ -5,7 +5,6 @@ import { Link } from 'react-router-dom';
 import { ChevronLeft, ShieldCheck, Loader2, Info } from 'lucide-react';
 import axios from 'axios';
 
-// Mapeo exacto de tarifas BlueExpress (Talla XS) desde Origen: Rancagua (Centro)
 const REGIONES_CHILE = [
     { nombre: "Región de Arica y Parinacota", zona: "extremo", precio: 5200 },
     { nombre: "Región de Tarapacá", zona: "extremo", precio: 5200 },
@@ -28,7 +27,7 @@ const REGIONES_CHILE = [
 const Checkout = () => {
     const { cart, totalPrice } = useCart();
     const { user } = useAuth();
-
+    
     const [isLoading, setIsLoading] = useState(false);
     const [showAutoFillAlert, setShowAutoFillAlert] = useState(false);
     const [shippingCost, setShippingCost] = useState(0);
@@ -41,31 +40,35 @@ const Checkout = () => {
         ? 'https://tienda-backend-fn64.onrender.com'
         : 'http://127.0.0.1:8000';
 
-    // Helper para formatear dinero en CLP
     const formatearDinero = (monto) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(monto);
 
-    // AUTO-RELLENADO DE DATOS
+    // Función de ayuda para limpiar precios (Evita el error de $NaN y el error de los decimales)
+    const obtenerPrecioNumerico = (precio) => {
+        if (typeof precio === 'number') return precio;
+        if (!precio) return 0;
+        // Eliminamos el signo $, los puntos de miles y espacios
+        const limpio = precio.toString().replace(/[$. ]/g, '');
+        return parseInt(limpio, 10) || 0;
+    };
+
     useEffect(() => {
         if (user && user.email) {
             const fetchProfile = async () => {
                 try {
                     const res = await axios.get(`${BASE_URL}/api/profile/`, { params: { email: user.email } });
-
                     const nombreCompleto = res.data.nombre || '';
                     const partesNombre = nombreCompleto.split(' ');
-                    const nombre = partesNombre[0] || '';
-                    const apellido = partesNombre.slice(1).join(' ') || '';
-
+                    
                     setFormData(prev => ({
                         ...prev,
-                        nombre: nombre,
-                        apellido: apellido,
+                        nombre: partesNombre[0] || '',
+                        apellido: partesNombre.slice(1).join(' ') || '',
                         email: user.email,
                         telefono: res.data.telefono || '',
                         direccion: res.data.direccion || '',
                         ciudad: res.data.ciudad || '',
                     }));
-
+                    
                     setShowAutoFillAlert(true);
                     setTimeout(() => setShowAutoFillAlert(false), 6000);
                 } catch (error) {
@@ -92,7 +95,7 @@ const Checkout = () => {
 
         try {
             const finalTotal = totalPrice + shippingCost;
-
+            
             const payload = {
                 amount: finalTotal,
                 email: formData.email,
@@ -101,13 +104,10 @@ const Checkout = () => {
             };
 
             const response = await axios.post(`${BASE_URL}/api/payment/create/`, payload);
-
-            if (response.data.url) {
-                window.location.href = response.data.url;
-            }
+            if (response.data.url) window.location.href = response.data.url;
         } catch (error) {
             console.error("Error conectando con Flow:", error);
-            alert("Hubo un problema al generar el pago. Por favor, intenta nuevamente.");
+            alert("Hubo un problema al generar el pago.");
             setIsLoading(false);
         }
     };
@@ -126,8 +126,8 @@ const Checkout = () => {
     return (
         <div className="min-h-screen bg-gray-50 pt-8 pb-16">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-
-                <Link to="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-indigo-600 mb-6 transition-colors">
+                
+                <Link to="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-indigo-600 mb-6 transition-colors font-medium">
                     <ChevronLeft size={20} /> Volver a la tienda
                 </Link>
 
@@ -139,43 +139,43 @@ const Checkout = () => {
                 )}
 
                 <div className="flex flex-col lg:flex-row gap-10">
-
-                    {/* COLUMNA IZQUIERDA: FORMULARIO */}
+                    
+                    {/* FORMULARIO DE ENVÍO */}
                     <div className="w-full lg:w-3/5">
                         <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
                             <h2 className="text-xl font-bold text-gray-900 mb-6 uppercase tracking-wider">Datos de Envío</h2>
-
+                            
                             <form id="checkout-form" onSubmit={handleSubmit} className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1">Nombre</label>
+                                        <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1 font-bold">Nombre</label>
                                         <input required type="text" name="nombre" value={formData.nombre} onChange={handleChange} className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400" />
                                     </div>
                                     <div>
-                                        <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1">Apellido</label>
+                                        <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1 font-bold">Apellido</label>
                                         <input required type="text" name="apellido" value={formData.apellido} onChange={handleChange} className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400" />
                                     </div>
                                 </div>
-
+                                
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1">Email</label>
+                                        <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1 font-bold">Email</label>
                                         <input required type="email" name="email" value={formData.email} onChange={handleChange} className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400" />
                                     </div>
                                     <div>
-                                        <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1">Teléfono</label>
+                                        <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1 font-bold">Teléfono</label>
                                         <input required type="tel" name="telefono" value={formData.telefono} onChange={handleChange} placeholder="+56 9 " className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400" />
                                     </div>
                                 </div>
 
                                 <div>
-                                    <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1">Dirección completa</label>
+                                    <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1 font-bold">Dirección completa</label>
                                     <input required type="text" name="direccion" value={formData.direccion} onChange={handleChange} placeholder="Calle, Número, Depto..." className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400" />
                                 </div>
 
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
-                                        <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1">Región</label>
+                                        <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1 font-bold">Región</label>
                                         <select required name="region" value={formData.region} onChange={handleChange} className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 bg-white">
                                             <option value="" disabled>Selecciona tu región...</option>
                                             {REGIONES_CHILE.map(r => (
@@ -184,7 +184,7 @@ const Checkout = () => {
                                         </select>
                                     </div>
                                     <div>
-                                        <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1">Ciudad</label>
+                                        <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1 font-bold">Ciudad</label>
                                         <input required type="text" name="ciudad" value={formData.ciudad} onChange={handleChange} placeholder="Ej: Rancagua" className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400" />
                                     </div>
                                 </div>
@@ -192,38 +192,34 @@ const Checkout = () => {
                         </div>
                     </div>
 
-                    {/* COLUMNA DERECHA: RESUMEN DE ORDEN */}
+                    {/* RESUMEN DE LA ORDEN */}
                     <div className="w-full lg:w-2/5">
                         <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 sticky top-24">
                             <h2 className="text-xl font-bold text-gray-900 mb-6 uppercase tracking-wider">Tu Pedido</h2>
-
-                            <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
+                            
+                            {/* AJUSTE DE SCROLL: lg:max-h-none para que se vea completo en PC */}
+                            <div className="space-y-4 mb-6 max-h-[400px] lg:max-h-none overflow-y-auto pr-2 custom-scrollbar">
                                 {cart.map(item => {
-                                    // LIMPIEZA DE PRECIO: Garantizamos que sea número para evitar el NaN
-                                    const precioNumerico = typeof item.price === 'string'
-                                        ? parseFloat(item.price.replace(/[^0-9.-]+/g, ""))
-                                        : parseFloat(item.price);
-
-                                    const subtotalItem = precioNumerico * item.quantity;
+                                    const precioUnitario = obtenerPrecioNumerico(item.price);
+                                    const subtotalItem = precioUnitario * item.quantity;
 
                                     return (
-                                        <div key={item.id} className="flex items-center justify-between gap-4 border-b border-gray-50 pb-4">
+                                        <div key={item.id} className="flex items-center justify-between gap-4 border-b border-gray-50 pb-3 last:border-0">
                                             <div className="flex items-center gap-4">
                                                 <div className="relative">
                                                     <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-xl border border-gray-100" />
-                                                    <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm">
+                                                    <span className="absolute -top-2 -right-2 bg-gray-900 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm">
                                                         {item.quantity}
                                                     </span>
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-medium text-gray-800 line-clamp-1">{item.name}</p>
-                                                    {/* DESGLOSE SOLICITADO: (Valor x Cantidad) en pequeño */}
-                                                    <p className="text-[10px] text-gray-400 font-bold">
-                                                        ({formatearDinero(precioNumerico)} x {item.quantity})
+                                                    {/* DESGLOSE SOLICITADO */}
+                                                    <p className="text-[10px] text-gray-400 font-bold italic">
+                                                       ({item.quantity} x {formatearDinero(precioUnitario)})
                                                     </p>
                                                 </div>
                                             </div>
-                                            {/* Total del producto individual calculado correctamente */}
                                             <p className="text-sm font-bold text-gray-900">{formatearDinero(subtotalItem)}</p>
                                         </div>
                                     );
@@ -243,13 +239,13 @@ const Checkout = () => {
                                         <span className="font-medium text-indigo-600">+{formatearDinero(shippingCost)}</span>
                                     )}
                                 </div>
-                                <div className="flex justify-between text-lg font-bold text-gray-900 pt-3 border-t border-gray-100 mt-2">
+                                <div className="flex justify-between text-lg font-black text-gray-900 pt-3 border-t border-gray-100 mt-2">
                                     <span>Total a Pagar</span>
                                     <span className="text-pink-600">{formatearDinero(totalPrice + shippingCost)}</span>
                                 </div>
                             </div>
 
-                            <button
+                            <button 
                                 form="checkout-form"
                                 type="submit"
                                 disabled={isLoading || shippingCost === 0}
@@ -258,9 +254,9 @@ const Checkout = () => {
                                 {isLoading ? <Loader2 className="animate-spin" size={20} /> : <ShieldCheck size={20} />}
                                 {isLoading ? 'Procesando...' : (shippingCost === 0 ? 'Selecciona Región' : 'Pagar Seguro')}
                             </button>
-
-                            <p className="text-xs text-gray-400 text-center mt-4">
-                                Envío calculado según tarifas BlueExpress XS.
+                            
+                            <p className="text-[10px] text-gray-400 text-center mt-4">
+                                Envío calculado según tarifas BlueExpress XS (Rancagua a Región seleccionada).
                             </p>
                         </div>
                     </div>
