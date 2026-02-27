@@ -93,9 +93,9 @@ const Envios = () => {
                         {error && <p className="mt-6 text-pink-600 text-[11px] font-black uppercase text-center p-4 bg-pink-50 rounded-xl border border-pink-100 italic">{error}</p>}
 
                         {trackingResult && (
-                            <div className="mt-8 p-6 bg-white rounded-3xl border border-gray-100 shadow-xl animate-in zoom-in-95 duration-500 relative overflow-hidden">
+                            <div className="mt-8 p-6 bg-white rounded-3xl border border-gray-100 shadow-xl animate-in zoom-in-95 duration-300 relative overflow-hidden">
                                 <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-50/30 rounded-full -mr-12 -mt-12"></div>
-
+                                
                                 <div className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100 relative z-10">
                                     <div className="flex items-center gap-3">
                                         <div className="bg-pink-100 p-2 rounded-xl"><Package className="text-pink-500" size={24} /></div>
@@ -109,18 +109,22 @@ const Envios = () => {
                                     </span>
                                 </div>
 
-                                {/* === LISTADO DE PRODUCTOS (AQUÍ ESTÁ LO QUE FALTABA) === */}
+                                {/* LISTADO DE PRODUCTOS - CORREGIDO PARA EVITAR PANTALLA EN BLANCO */}
                                 <div className="mb-6 bg-gray-50/50 p-5 rounded-2xl border border-gray-100">
                                     <p className="text-[10px] text-indigo-900 uppercase tracking-widest font-black mb-4 flex items-center gap-2">
-                                        <ShoppingCart size={14} /> Artículos en este pedido
+                                        <ShoppingCart size={14}/> Resumen de compra
                                     </p>
                                     <div className="space-y-2">
+                                        {/* Agregamos ?. y || [] para que si no hay items, no explote */}
                                         {(trackingResult.items || []).map((item, idx) => (
                                             <div key={idx} className="flex justify-between text-xs border-b border-white pb-1 italic last:border-0">
                                                 <span className="text-gray-700 font-bold">x{item.quantity} {item.name}</span>
                                                 <span className="text-gray-500 font-medium">${new Intl.NumberFormat('es-CL').format(item.price * item.quantity)}</span>
                                             </div>
                                         ))}
+                                        {(!trackingResult.items || trackingResult.items.length === 0) && (
+                                            <p className="text-[10px] text-gray-400 italic">Cargando detalles de productos...</p>
+                                        )}
                                     </div>
                                 </div>
 
@@ -130,7 +134,7 @@ const Envios = () => {
                                             <div className="bg-cyan-50 p-2 rounded-lg"><User size={16} className="text-cyan-600" /></div>
                                             <div>
                                                 <p className="text-[9px] text-gray-400 uppercase font-black tracking-widest mb-1">Para</p>
-                                                <p className="font-bold text-gray-900">{trackingResult.customer_name}</p>
+                                                <p className="font-bold text-gray-900">{trackingResult.customer_name || 'Cargando...'}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-start gap-3">
@@ -144,7 +148,7 @@ const Envios = () => {
                                             <div className="bg-cyan-50 p-2 rounded-lg"><MapPin size={16} className="text-cyan-600" /></div>
                                             <div>
                                                 <p className="text-[9px] text-gray-400 uppercase font-black tracking-widest mb-1">Lugar de Destino</p>
-                                                <p className="font-bold text-gray-900 leading-tight italic">{trackingResult.address}</p>
+                                                <p className="font-bold text-gray-900 leading-tight italic">{trackingResult.address || 'Pendiente'}</p>
                                             </div>
                                         </div>
 
@@ -163,11 +167,11 @@ const Envios = () => {
                                                 </p>
                                             </div>
                                         </div>
-
+                                        
                                         {trackingResult.raw_status === 'pendiente' && !trackingResult.is_expired && (
                                             <button onClick={handleRetryPayment} disabled={isRetryingPayment} className="md:col-span-2 w-full py-4 bg-pink-600 text-white font-black rounded-2xl uppercase tracking-widest hover:bg-pink-700 shadow-lg mt-4 flex items-center justify-center gap-3">
                                                 {isRetryingPayment ? <Loader2 size={20} className="animate-spin" /> : <CreditCard size={20} />}
-                                                Completar Pago Pendiente
+                                                Reintentar Pago con Flow
                                             </button>
                                         )}
                                     </div>
