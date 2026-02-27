@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Filter, X } from 'lucide-react';
+import { Filter, X, ShoppingCart } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext'; // IMPORTAMOS EL CARRITO
 import logoImg from '../assets/logo.jpeg';
@@ -11,6 +11,9 @@ const ProductPage = ({ title, products, bannerImage }) => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 12;
 
+    // Helper para formatear dinero (mantenemos la consistencia visual de $6.000)
+    const formatearDinero = (monto) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(monto);
+
     // Filtros simplificados para Precios
     const [priceFilter, setPriceFilter] = useState({
         normal: false,
@@ -20,27 +23,28 @@ const ProductPage = ({ title, products, bannerImage }) => {
     const getSortedProducts = () => {
         let sorted = [...products];
 
-        // LÓGICA DE FILTRADO (Preparada para cuando uses el campo % Descuento de Django)
+        // LÓGICA DE FILTRADO (Usa discount_percent de tu base de datos)
         if (priceFilter.normal && !priceFilter.oferta) {
-            // Asumiendo que si no hay descuento, es normal
-            sorted = sorted.filter(p => !p.descuento || p.descuento === 0);
+            // Si tiene 0 o nada de descuento, es normal
+            sorted = sorted.filter(p => !p.discount_percent || p.discount_percent === 0);
         } else if (!priceFilter.normal && priceFilter.oferta) {
-            // Asumiendo que si hay descuento, es oferta
-            sorted = sorted.filter(p => p.descuento && p.descuento > 0);
+            // Si tiene más de 0, es oferta
+            sorted = sorted.filter(p => p.discount_percent && p.discount_percent > 0);
         }
 
-        // LÓGICA DE ORDENAMIENTO
+        // LÓGICA DE ORDENAMIENTO (Corregida para números)
         switch (sortBy) {
             case 'price-asc':
                 return sorted.sort((a, b) => {
-                    const priceA = parseInt(a.price.replace(/\D/g, ''));
-                    const priceB = parseInt(b.price.replace(/\D/g, ''));
+                    // Ya no usamos .replace porque ahora son números puros
+                    const priceA = a.price;
+                    const priceB = b.price;
                     return priceA - priceB;
                 });
             case 'price-desc':
                 return sorted.sort((a, b) => {
-                    const priceA = parseInt(a.price.replace(/\D/g, ''));
-                    const priceB = parseInt(b.price.replace(/\D/g, ''));
+                    const priceA = a.price;
+                    const priceB = b.price;
                     return priceB - priceA;
                 });
             case 'name':
@@ -90,7 +94,7 @@ const ProductPage = ({ title, products, bannerImage }) => {
 
                     <button
                         onClick={() => setIsMobileFilterOpen(true)}
-                        className="md:hidden w-full bg-gray-900 text-white py-3 uppercase font-bold tracking-wider flex justify-center items-center gap-2 text-sm"
+                        className="md:hidden w-full bg-gray-900 text-white py-3 uppercase font-bold tracking-wider flex justify-center items-center gap-2 text-sm rounded-xl"
                     >
                         <Filter size={16} /> Filtros
                     </button>
@@ -104,7 +108,7 @@ const ProductPage = ({ title, products, bannerImage }) => {
                         <select
                             value={sortBy}
                             onChange={(e) => setSortBy(e.target.value)}
-                            className="border border-gray-300 rounded-md p-2 text-sm focus:outline-none focus:border-cyan-400 bg-[#feecd4]"
+                            className="border border-gray-300 rounded-xl p-2 text-sm focus:outline-none focus:border-cyan-400 bg-[#feecd4]"
                         >
                             <option value="relevance">Relevancia</option>
                             <option value="price-asc">Precio: Menor a Mayor</option>
@@ -118,7 +122,7 @@ const ProductPage = ({ title, products, bannerImage }) => {
 
                     {/* === SIDEBAR FILTROS (Desktop) === */}
                     <aside className="hidden md:block w-64 flex-shrink-0">
-                        <div className="sticky top-24 space-y-8">
+                        <div className="sticky top-24 space-y-8 bg-white/40 p-6 rounded-[2rem] border border-white/20 backdrop-blur-sm">
                             <div>
                                 <h3 className="font-bold text-gray-900 mb-4 uppercase text-sm tracking-wider">Tipo de Precio</h3>
                                 <div className="space-y-3">
@@ -147,55 +151,68 @@ const ProductPage = ({ title, products, bannerImage }) => {
 
                     {/* === GRILLA DE PRODUCTOS === */}
                     <div className="flex-1">
-                        <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
-                            {currentProducts.map((product) => (
-                                <Link
-                                    to={`/producto/${product.id}`}
-                                    key={product.id}
-                                    // HOMOLOGADO: Mismo diseño de tarjeta que en inicio
-                                    className="group flex flex-col bg-[#feecd4] border border-orange-100 hover:shadow-xl transition-all duration-300 cursor-pointer rounded-2xl p-3 pb-2"
-                                >
-                                    <div className="relative aspect-[4/5] overflow-hidden bg-gray-100 rounded-xl mb-3">
-                                        <img
-                                            src={product.image}
-                                            alt={product.name}
-                                            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-                                        />
-                                    </div>
+                        {currentProducts.length === 0 ? (
+                            <div className="text-center py-20 bg-white/30 rounded-[3rem] border border-dashed border-gray-400">
+                                <p className="text-gray-500 italic">No hay productos que coincidan con los filtros seleccionados.</p>
+                            </div>
+                        ) : (
+                            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                                {currentProducts.map((product) => (
+                                    <div
+                                        key={product.id}
+                                        className="group flex flex-col bg-[#feecd4] border border-orange-100 hover:shadow-xl transition-all duration-300 rounded-2xl p-3"
+                                    >
+                                        <Link to={`/producto/${product.id}`} className="relative aspect-[4/5] overflow-hidden bg-gray-100 rounded-xl mb-3">
+                                            <img
+                                                src={product.image}
+                                                alt={product.name}
+                                                className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+                                            />
+                                            {product.discount_percent > 0 && (
+                                                <span className="absolute top-2 left-2 bg-pink-500 text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
+                                                    -{product.discount_percent}%
+                                                </span>
+                                            )}
+                                        </Link>
 
-                                    <div className="flex flex-col flex-grow justify-between">
-                                        <div>
-                                            <p className="text-gray-500 text-[10px] md:text-xs uppercase tracking-wider mb-1">Policromica</p>
-                                            <h3 className="font-semibold text-gray-700 text-sm md:text-base leading-tight mb-1 line-clamp-2">
-                                                {product.name}
-                                            </h3>
-                                            <div className="flex justify-between items-center mt-1">
-                                                <span className="text-indigo-600 font-bold text-base md:text-lg">{product.price}</span>
+                                        <div className="flex flex-col flex-grow justify-between">
+                                            <div>
+                                                <p className="text-gray-500 text-[10px] md:text-xs uppercase tracking-wider mb-1">Policromica</p>
+                                                <h3 className="font-semibold text-gray-700 text-sm md:text-base leading-tight mb-1 line-clamp-2 h-10">
+                                                    {product.name}
+                                                </h3>
+                                                <div className="flex justify-between items-center mt-1">
+                                                    {/* Usamos el helper para que el número se vea como $6.000 */}
+                                                    <span className="text-indigo-600 font-bold text-base md:text-lg">
+                                                        {formatearDinero(product.price)}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {/* CÁPSULA DE BOTONES */}
+                                            <div className="mt-3 flex items-center justify-center w-full bg-white rounded-full overflow-hidden shadow-sm border border-orange-100">
+                                                <Link 
+                                                    to={`/producto/${product.id}`}
+                                                    className="flex-1 text-center py-2 text-cyan-800 text-[11px] font-bold hover:bg-orange-50 hover:text-indigo-600 transition-colors border-r border-orange-50"
+                                                >
+                                                    Detalles
+                                                </Link>
+                                                
+                                                <button
+                                                    onClick={(e) => {
+                                                        e.preventDefault(); 
+                                                        addToCart(product); 
+                                                    }}
+                                                    className="flex-1 text-center py-2 text-pink-600 text-[11px] font-bold hover:bg-orange-50 hover:text-pink-700 transition-colors flex items-center justify-center gap-1"
+                                                >
+                                                    <ShoppingCart size={12} /> Añadir
+                                                </button>
                                             </div>
                                         </div>
-
-                                        {/* CÁPSULA DE BOTONES IGUAL AL INICIO */}
-                                        <div className="mt-3 flex items-center justify-center w-full bg-white rounded-full overflow-hidden shadow-sm border border-orange-100 pointer-events-auto">
-                                            <span className="flex-1 text-center py-2 text-cyan-800 text-[11px] md:text-xs font-bold hover:bg-orange-50 hover:text-indigo-600 transition-colors">
-                                                Ver Detalles
-                                            </span>
-                                            
-                                            <span className="text-orange-300 font-light text-xs select-none">/</span>
-                                            
-                                            <button
-                                                onClick={(e) => {
-                                                    e.preventDefault(); 
-                                                    addToCart(product); 
-                                                }}
-                                                className="flex-1 text-center py-2 text-pink-600 text-[11px] md:text-xs font-bold hover:bg-orange-50 hover:text-pink-700 transition-colors cursor-pointer z-10"
-                                            >
-                                                Añadir al carro
-                                            </button>
-                                        </div>
                                     </div>
-                                </Link>
-                            ))}
-                        </div>
+                                ))}
+                            </div>
+                        )}
 
                         {/* === PAGINACIÓN === */}
                         {totalPages > 1 && (
@@ -204,7 +221,7 @@ const ProductPage = ({ title, products, bannerImage }) => {
                                     <button
                                         key={number}
                                         onClick={() => setCurrentPage(number)}
-                                        className={`w-10 h-10 flex items-center justify-center border rounded-md ${currentPage === number
+                                        className={`w-10 h-10 flex items-center justify-center border rounded-xl font-bold ${currentPage === number
                                                 ? 'bg-gray-900 text-white border-gray-900 shadow-md'
                                                 : 'bg-[#feecd4] text-gray-600 border-gray-300 hover:border-gray-900'
                                             } transition-all`}
