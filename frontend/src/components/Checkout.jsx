@@ -41,14 +41,13 @@ const Checkout = () => {
         ? 'https://tienda-backend-fn64.onrender.com'
         : 'http://127.0.0.1:8000';
 
-    // AUTO-RELLENADO DE DATOS DESDE LA BASE DE DATOS
+    // AUTO-RELLENADO DE DATOS
     useEffect(() => {
         if (user && user.email) {
             const fetchProfile = async () => {
                 try {
                     const res = await axios.get(`${BASE_URL}/api/profile/`, { params: { email: user.email } });
                     
-                    // Separar nombre y apellido si viene junto
                     const nombreCompleto = res.data.nombre || '';
                     const partesNombre = nombreCompleto.split(' ');
                     const nombre = partesNombre[0] || '';
@@ -65,7 +64,7 @@ const Checkout = () => {
                     }));
                     
                     setShowAutoFillAlert(true);
-                    setTimeout(() => setShowAutoFillAlert(false), 6000); // Ocultar alerta después de 6s
+                    setTimeout(() => setShowAutoFillAlert(false), 6000);
                 } catch (error) {
                     console.error("Error auto-rellenando datos", error);
                 }
@@ -74,12 +73,10 @@ const Checkout = () => {
         }
     }, [user, BASE_URL]);
 
-    // MANEJO DE FORMULARIO Y CÁLCULO DE ENVÍO
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
 
-        // Si el usuario cambia la región, calculamos el nuevo precio de envío
         if (name === 'region') {
             const regionSeleccionada = REGIONES_CHILE.find(r => r.nombre === value);
             setShippingCost(regionSeleccionada ? regionSeleccionada.precio : 0);
@@ -91,7 +88,7 @@ const Checkout = () => {
         setIsLoading(true);
 
         try {
-            const finalTotal = totalPrice + shippingCost; // Sumamos el envío al total de los productos
+            const finalTotal = totalPrice + shippingCost; 
             
             const payload = {
                 amount: finalTotal,
@@ -133,7 +130,6 @@ const Checkout = () => {
                     <ChevronLeft size={20} /> Volver a la tienda
                 </Link>
 
-                {/* ALERTA DE AUTO-RELLENADO */}
                 {showAutoFillAlert && (
                     <div className="mb-6 bg-cyan-50 border border-cyan-200 text-cyan-800 px-4 py-3 rounded-xl flex items-center gap-3 animate-in fade-in slide-in-from-top-4">
                         <Info size={20} className="text-cyan-600" />
@@ -143,7 +139,7 @@ const Checkout = () => {
 
                 <div className="flex flex-col lg:flex-row gap-10">
                     
-                    {/* COLUMNA IZQUIERDA: Formulario */}
+                    {/* FORMULARIO */}
                     <div className="w-full lg:w-3/5">
                         <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
                             <h2 className="text-xl font-bold text-gray-900 mb-6 uppercase tracking-wider">Datos de Envío</h2>
@@ -179,13 +175,7 @@ const Checkout = () => {
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1">Región</label>
-                                        <select 
-                                            required 
-                                            name="region" 
-                                            value={formData.region} 
-                                            onChange={handleChange} 
-                                            className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 bg-white"
-                                        >
+                                        <select required name="region" value={formData.region} onChange={handleChange} className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400 bg-white">
                                             <option value="" disabled>Selecciona tu región...</option>
                                             {REGIONES_CHILE.map(r => (
                                                 <option key={r.nombre} value={r.nombre}>{r.nombre}</option>
@@ -201,26 +191,37 @@ const Checkout = () => {
                         </div>
                     </div>
 
-                    {/* COLUMNA DERECHA: Resumen de la Orden */}
+                    {/* RESUMEN DE ORDEN */}
                     <div className="w-full lg:w-2/5">
                         <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 sticky top-24">
                             <h2 className="text-xl font-bold text-gray-900 mb-6 uppercase tracking-wider">Tu Pedido</h2>
                             
                             <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
-                                {cart.map(item => (
-                                    <div key={item.id} className="flex items-center justify-between gap-4">
-                                        <div className="flex items-center gap-4">
-                                            <div className="relative">
-                                                <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-xl border border-gray-100" />
-                                                <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                                                    {item.quantity}
-                                                </span>
+                                {cart.map(item => {
+                                    // Solución al NaN: Quitamos el símbolo '$' y los puntos para poder multiplicar matemáticamente
+                                    const precioLimpio = typeof item.price === 'string' ? parseInt(item.price.replace(/[$.]/g, '')) : item.price;
+                                    const totalItem = precioLimpio * item.quantity;
+
+                                    return (
+                                        <div key={item.id} className="flex items-center justify-between gap-4">
+                                            <div className="flex items-center gap-4">
+                                                <div className="relative">
+                                                    <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-xl border border-gray-100" />
+                                                    <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                                                        {item.quantity}
+                                                    </span>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-800 line-clamp-2">{item.name}</p>
+                                                    {item.quantity > 1 && (
+                                                        <p className="text-[10px] text-gray-400 mt-0.5">{item.quantity} x {formatearDinero(precioLimpio)} c/u</p>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <p className="text-sm font-medium text-gray-800 line-clamp-2">{item.name}</p>
+                                            <p className="text-sm font-bold text-gray-900">{formatearDinero(totalItem)}</p>
                                         </div>
-                                        <p className="text-sm font-bold text-gray-900">{formatearDinero(item.price * item.quantity)}</p>
-                                    </div>
-                                ))}
+                                    )
+                                })}
                             </div>
 
                             <div className="border-t border-gray-100 pt-4 space-y-3 mb-6">
