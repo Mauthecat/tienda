@@ -3,7 +3,7 @@ from django.http import JsonResponse
 from django.contrib.auth import get_user_model
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, redirect
-from .models import Product, Order, OrderItem, Favorite, Address
+from .models import Product, Order, OrderItem, Favorite, Address, Shipment
 import hmac
 import hashlib
 import uuid
@@ -205,7 +205,63 @@ def payment_final_redirect(request):
     return redirect("https://policromica.vercel.app")
 
 
-# --- FUNCIONES PARA EL PERFIL Y RASTREO ---
+# --- FUNCIONES PARA EL PERFIL, AJUSTES Y RASTREO ---
+
+@csrf_exempt
+def get_user_profile(request):
+    """Obtiene los datos del perfil para editarlos"""
+    email = request.GET.get('email')
+    if not email:
+        return JsonResponse({'error': 'Faltan datos'}, status=400)
+    try:
+        user = User.objects.get(email=email)
+        address = user.addresses.first()
+        return JsonResponse({
+            'nombre': user.first_name,
+            'telefono': user.phone or '',
+            'direccion': address.street_address if address else '',
+            'ciudad': address.city if address else '',
+        }, status=200)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'Usuario no encontrado'}, status=404)
+
+@csrf_exempt
+def update_user_profile(request):
+    """Guarda los cambios del perfil en la BD"""
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            email = data.get('email')
+            if not email:
+                return JsonResponse({'error': 'Faltan datos'}, status=400)
+            
+            user = User.objects.get(email=email)
+            user.first_name = data.get('nombre', user.first_name)
+            user.phone = data.get('telefono', user.phone)
+            user.save()
+            
+            addr_str = data.get('direccion')
+            city_str = data.get('ciudad')
+            
+            if addr_str or city_str:
+                address = user.addresses.first()
+                if address:
+                    address.street_address = addr_str or address.street_address
+                    address.city = city_str or address.city
+                    address.save()
+                else:
+                    Address.objects.create(
+                        user=user,
+                        street_address=addr_str or 'Sin dirección',
+                        city=city_str or 'Sin ciudad',
+                        state='N/A',
+                        zip_code='0000000'
+                    )
+            return JsonResponse({'success': True, 'mensaje': 'Datos guardados'})
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+    return JsonResponse({'error': 'Método no permitido'}, status=405)
+
 
 @csrf_exempt
 def get_user_orders(request):
@@ -226,15 +282,32 @@ def get_user_orders(request):
 
 @csrf_exempt
 def track_order(request):
+    """Devuelve los datos completos del pedido para la vista de Envios"""
     order_code = request.GET.get('code', '').upper().replace('POLI-', '')
     try:
-        order = Order.objects.get(id=order_code)
+        # Seleccionamos también el usuario y la dirección
+        order = Order.objects.select_related('user', 'shipping_address').get(id=order_code)
+        
+        courier = "Pendiente de asignación"
+        tracking_number = "N/A"
+        
+        # Revisamos si el admin ya le asignó un código de envío (Shipment)
+        if hasattr(order, 'shipment'):
+            courier = order.shipment.courier or courier
+            tracking_number = order.shipment.tracking_number or tracking_number
+
+        address_str = f"{order.shipping_address.street_address}, {order.shipping_address.city}" if order.shipping_address else "Retiro en tienda / No especificada"
+
         return JsonResponse({
             'success': True,
             'order_number': f"POLI-{order.id}",
             'status': order.get_status_display(),
             'total': float(order.total_amount),
-            'date': order.created_at.strftime("%d/%m/%Y")
+            'date': order.created_at.strftime("%d/%m/%Y"),
+            'customer_name': order.user.first_name or order.user.username,
+            'address': address_str,
+            'courier': courier,
+            'tracking_number': tracking_number
         })
     except (Order.DoesNotExist, ValueError):
         return JsonResponse({'success': False, 'error': 'Pedido no encontrado'})
@@ -261,7 +334,7 @@ def get_favorites(request):
             'name': product.name,
             'price': float(product.price),
             'stock': product.stock,
-            'category__name': product.category.name if product.category else "Sin categoría", # <-- AQUI VA EL FIX, DONDE CORRESPONDE
+            'category__name': product.category.name if product.category else "Sin categoría",
             'image': image_url,
         })
 
