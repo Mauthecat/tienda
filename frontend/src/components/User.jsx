@@ -19,16 +19,13 @@ const User = () => {
     const [activeTab, setActiveTab] = useState('pedidos');
     const [isRetryingPayment, setIsRetryingPayment] = useState(false);
     
-    // Estados para Órdenes y Favoritos
     const [orders, setOrders] = useState([]);
     const [favoritesPreview, setFavoritesPreview] = useState([]);
     const [loadingData, setLoadingData] = useState(false);
-    
-    // Estados para el detalle desplegable de pedidos
+
     const [expandedOrderId, setExpandedOrderId] = useState(null);
     const [orderDetails, setOrderDetails] = useState(null);
 
-    // Estados para el Perfil
     const [profileData, setProfileData] = useState({ nombre: '', telefono: '', direccion: '', ciudad: '' });
     const [savingProfile, setSavingProfile] = useState(false);
 
@@ -38,7 +35,6 @@ const User = () => {
 
     const BASE_URL = import.meta.env.MODE === 'production' ? 'https://tienda-backend-fn64.onrender.com' : 'http://127.0.0.1:8000';
 
-    // Función para expandir/colapsar un pedido y cargar sus detalles
     const toggleOrderDetails = async (orderId, orderNumber) => {
         if (expandedOrderId === orderId) {
             setExpandedOrderId(null);
@@ -47,9 +43,8 @@ const User = () => {
         }
         
         setExpandedOrderId(orderId);
-        setOrderDetails(null); // Resetear mientras carga
+        setOrderDetails(null); 
         try {
-            // Reutilizamos la lógica de track_order que ya implementamos en el backend
             const res = await axios.get(`${BASE_URL}/api/track/`, { params: { code: orderNumber } });
             if (res.data.success) {
                 setOrderDetails(res.data);
@@ -141,7 +136,7 @@ const User = () => {
                                 <div className="w-24 h-24 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-orange-200 shadow-sm">
                                     <UserIcon size={48} />
                                 </div>
-                                <h2 className="text-xl font-bold text-gray-900 mb-1">¡Hola, {profileData.nombre.split(' ')[0] || 'Cliente'}!</h2>
+                                <h2 className="text-xl font-bold text-gray-900 mb-1">¡Hola, {profileData.nombre.split(' ')[0] || 'Cata'}!</h2>
                                 <p className="text-gray-500 text-xs mb-8 break-all font-medium">{user.email}</p>
 
                                 <div className="space-y-3">
@@ -171,18 +166,15 @@ const User = () => {
                                             <p className="text-[11px] leading-relaxed italic">Nota: Las órdenes en estado <b>Pendiente</b> por más de 6 horas se cancelan automáticamente.</p>
                                         </div>
 
-                                        {loadingData ? (
-                                            <p className="text-center py-10 text-gray-400 animate-pulse">Cargando tus pedidos...</p>
-                                        ) : orders.length === 0 ? (
-                                            <div className="bg-gray-50 rounded-3xl p-10 text-center border-2 border-dashed border-gray-200">
-                                                <p className="text-sm text-gray-400 mb-4">Aún no tienes pedidos registrados.</p>
-                                                <Link to="/" className="text-indigo-600 font-bold hover:underline text-sm uppercase tracking-widest">Ir a la Tienda</Link>
-                                            </div>
-                                        ) : (
-                                            <div className="space-y-4 max-h-[500px] overflow-y-auto pr-2 custom-scrollbar">
-                                                {orders.map((order) => (
+                                        <div className="space-y-4 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
+                                            {orders.length === 0 ? (
+                                                <div className="bg-gray-50 rounded-3xl p-10 text-center border-2 border-dashed border-gray-200">
+                                                    <p className="text-sm text-gray-400 mb-4">Aún no tienes pedidos registrados.</p>
+                                                    <Link to="/" className="text-indigo-600 font-bold hover:underline text-sm uppercase tracking-widest">Ir a la Tienda</Link>
+                                                </div>
+                                            ) : (
+                                                orders.map((order) => (
                                                     <div key={order.id} className={`border rounded-[1.5rem] overflow-hidden transition-all ${order.is_expired ? 'opacity-50 grayscale' : 'hover:border-indigo-200 shadow-sm'}`}>
-                                                        {/* CABECERA DEL PEDIDO (Clickable) */}
                                                         <div 
                                                             onClick={() => toggleOrderDetails(order.id, order.order_number)}
                                                             className="p-5 flex justify-between items-center bg-white cursor-pointer hover:bg-gray-50/50 transition-colors"
@@ -204,43 +196,58 @@ const User = () => {
 
                                                         {/* DETALLE EXPANDIDO */}
                                                         {expandedOrderId === order.id && (
-                                                            <div className="p-5 pt-0 bg-gray-50/30 border-t border-gray-50 animate-in slide-in-from-top duration-200">
+                                                            <div className="p-5 pt-0 bg-gray-50/30 border-t border-gray-100 animate-in slide-in-from-top duration-200">
                                                                 {!orderDetails ? (
                                                                     <div className="flex justify-center py-4"><Loader2 className="animate-spin text-indigo-300" size={20} /></div>
                                                                 ) : (
-                                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4 text-xs">
-                                                                        <div className="space-y-3">
-                                                                            <div>
-                                                                                <p className="text-[10px] text-gray-400 uppercase font-black mb-1 flex items-center gap-1"><MapPin size={12}/> Dirección de Envío</p>
-                                                                                <p className="text-gray-700 leading-tight">{orderDetails.address || 'No especificada'}</p>
-                                                                            </div>
-                                                                            <div>
-                                                                                <p className="text-[10px] text-gray-400 uppercase font-black mb-1 flex items-center gap-1"><Truck size={12}/> Transportista</p>
-                                                                                <p className="text-indigo-600 font-bold">{orderDetails.courier === "Pendiente de asignación" ? "Pedido en preparación" : orderDetails.courier}</p>
+                                                                    <div className="space-y-5 mt-4">
+                                                                        {/* PRODUCTOS COMPRADOS */}
+                                                                        <div className="bg-white p-4 rounded-xl border border-gray-100">
+                                                                            <p className="text-[9px] font-black uppercase text-gray-400 mb-2">Artículos</p>
+                                                                            <div className="space-y-1">
+                                                                                {orderDetails.items.map((item, idx) => (
+                                                                                    <div key={idx} className="flex justify-between text-[11px]">
+                                                                                        <span className="text-gray-700 font-medium">x{item.quantity} {item.name}</span>
+                                                                                        <span className="text-gray-500 font-bold">${new Intl.NumberFormat('es-CL').format(item.price * item.quantity)}</span>
+                                                                                    </div>
+                                                                                ))}
                                                                             </div>
                                                                         </div>
-                                                                        <div className="bg-white p-4 rounded-2xl border border-gray-100 flex flex-col justify-center items-center text-center shadow-inner">
-                                                                            <p className="text-[9px] text-gray-400 uppercase font-black mb-1">N° Seguimiento</p>
-                                                                            <p className="text-base font-black text-gray-900 tracking-wider">
-                                                                                {orderDetails.tracking_number === "N/A" ? "Pendiente de envío" : orderDetails.tracking_number}
-                                                                            </p>
-                                                                            {order.raw_status === 'pendiente' && !order.is_expired && (
-                                                                                <button 
-                                                                                    onClick={(e) => { e.stopPropagation(); handleRetryPayment(order.id); }}
-                                                                                    className="mt-3 w-full py-2 bg-pink-600 text-white font-bold rounded-xl text-[10px] uppercase tracking-widest hover:bg-pink-700 transition-transform active:scale-95"
-                                                                                >
-                                                                                    Completar Pago
-                                                                                </button>
-                                                                            )}
+
+                                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px]">
+                                                                            <div className="space-y-3">
+                                                                                <div>
+                                                                                    <p className="text-[10px] text-gray-400 uppercase font-black mb-1 flex items-center gap-1"><MapPin size={12}/> Dirección de Envío</p>
+                                                                                    <p className="text-gray-700 leading-tight">{orderDetails.address || 'No especificada'}</p>
+                                                                                </div>
+                                                                                <div>
+                                                                                    <p className="text-[10px] text-gray-400 uppercase font-black mb-1 flex items-center gap-1"><Truck size={12}/> Transportista</p>
+                                                                                    <p className="text-indigo-600 font-bold">{orderDetails.courier === "Pendiente de asignación" ? "Pedido en preparación" : orderDetails.courier}</p>
+                                                                                </div>
+                                                                            </div>
+                                                                            <div className="bg-white p-4 rounded-2xl border border-gray-100 flex flex-col justify-center items-center text-center shadow-inner">
+                                                                                <p className="text-[9px] text-gray-400 uppercase font-black mb-1">N° Seguimiento</p>
+                                                                                <p className="text-sm font-black text-gray-900 tracking-wider">
+                                                                                    {orderDetails.tracking_number === "N/A" ? "Pendiente de envío" : orderDetails.tracking_number}
+                                                                                </p>
+                                                                                {order.raw_status === 'pendiente' && !order.is_expired && (
+                                                                                    <button 
+                                                                                        onClick={(e) => { e.stopPropagation(); handleRetryPayment(order.id); }}
+                                                                                        className="mt-3 w-full py-2 bg-pink-600 text-white font-bold rounded-xl text-[10px] uppercase tracking-widest hover:bg-pink-700 transition-transform active:scale-95"
+                                                                                    >
+                                                                                        Completar Pago
+                                                                                    </button>
+                                                                                )}
+                                                                            </div>
                                                                         </div>
                                                                     </div>
                                                                 )}
                                                             </div>
                                                         )}
                                                     </div>
-                                                ))}
-                                            </div>
-                                        )}
+                                                ))
+                                            )}
+                                        </div>
                                     </section>
                                 ) : (
                                     <section className="animate-in slide-in-from-right duration-300">
@@ -326,7 +333,6 @@ const User = () => {
         );
     }
 
-    // FORMULARIO DE LOGIN / REGISTRO
     return (
         <div className="min-h-screen bg-[#b3f3f5] py-12 px-4 flex items-center justify-center">
             <div className="max-w-md w-full bg-white rounded-[3rem] shadow-2xl p-10 animate-in zoom-in-95 duration-500">
@@ -337,41 +343,33 @@ const User = () => {
                     <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tighter italic">
                         {isLoginView ? '¡Bienvenida!' : 'Crear Cuenta'}
                     </h2>
-                    <p className="text-sm text-gray-400 mt-2 font-medium">
-                        {isLoginView ? 'Accede a tu cuenta de Policrómica' : 'Únete a nuestra comunidad creativa'}
-                    </p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-5">
                     {!isLoginView && (
                         <div className="relative group">
-                            <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-cyan-500 transition-colors" size={20} />
-                            <input required={!isLoginView} type="text" name="nombre" value={formData.nombre} onChange={handleChange} placeholder="Tu Nombre Completo" className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 pl-12 pr-4 text-sm focus:ring-4 focus:ring-cyan-50 focus:border-cyan-400 outline-none transition-all" />
+                            <UserIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={20} />
+                            <input required={!isLoginView} type="text" name="nombre" value={formData.nombre} onChange={handleChange} placeholder="Tu Nombre Completo" className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 pl-12 pr-4 text-sm focus:ring-4 focus:ring-cyan-50 outline-none transition-all" />
                         </div>
                     )}
                     <div className="relative group">
-                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-cyan-500 transition-colors" size={20} />
-                        <input required type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 pl-12 pr-4 text-sm focus:ring-4 focus:ring-cyan-50 focus:border-cyan-400 outline-none transition-all" />
+                        <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={20} />
+                        <input required type="email" name="email" value={formData.email} onChange={handleChange} placeholder="Email" className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 pl-12 pr-4 text-sm focus:ring-4 focus:ring-cyan-50 outline-none transition-all" />
                     </div>
                     <div className="relative group">
-                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300 group-focus-within:text-cyan-500 transition-colors" size={20} />
-                        <input required type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Contraseña" className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 pl-12 pr-4 text-sm focus:ring-4 focus:ring-cyan-50 focus:border-cyan-400 outline-none transition-all" />
+                        <Lock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-300" size={20} />
+                        <input required type="password" name="password" value={formData.password} onChange={handleChange} placeholder="Contraseña" className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 pl-12 pr-4 text-sm focus:ring-4 focus:ring-cyan-50 outline-none transition-all" />
                     </div>
-                    <button type="submit" className="w-full bg-gray-900 hover:bg-black text-white font-black py-5 rounded-2xl uppercase tracking-[0.2em] shadow-xl hover:shadow-gray-300 transition-all mt-4 transform hover:-translate-y-1 active:translate-y-0">
+                    <button type="submit" className="w-full bg-gray-900 hover:bg-black text-white font-black py-5 rounded-2xl uppercase tracking-[0.2em] shadow-xl transition-all mt-4 transform hover:-translate-y-1">
                         {isLoginView ? 'Entrar' : 'Registrarme'}
                     </button>
                 </form>
 
                 <div className="mt-10 text-center text-sm">
-                    <p className="text-gray-400 font-medium">
-                        {isLoginView ? '¿No tienes cuenta todavía?' : '¿Ya eres parte de Policrómica?'}
-                    </p>
-                    <button onClick={() => setIsLoginView(!isLoginView)} className="mt-2 font-black text-pink-600 hover:text-pink-700 transition-colors uppercase tracking-widest text-xs">
+                    <p className="text-gray-400 font-medium">{isLoginView ? '¿No tienes cuenta todavía?' : '¿Ya eres parte?'}</p>
+                    <button onClick={() => setIsLoginView(!isLoginView)} className="mt-2 font-black text-pink-600 uppercase text-xs tracking-widest">
                         {isLoginView ? 'Crear mi cuenta gratis' : 'Inicia Sesión aquí'}
                     </button>
-                </div>
-                <div className="mt-8 text-center">
-                    <Link to="/" className="text-[10px] text-gray-300 hover:text-gray-500 underline uppercase font-bold tracking-widest transition-colors">Volver a la vitrina</Link>
                 </div>
             </div>
         </div>

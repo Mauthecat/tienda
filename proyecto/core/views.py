@@ -353,12 +353,13 @@ def get_user_orders(request):
         })
     return JsonResponse(data, safe=False)
 
+
 @csrf_exempt
 def track_order(request):
-    """Busca una orden por su código POLI-XXX con protección de privacidad"""
+    """Busca una orden por su código POLI-XXX con protección de privacidad y lista de productos"""
     order_code = request.GET.get('code', '').upper().replace('POLI-', '')
     try:
-        # Cargamos la orden con su usuario y dirección de envío
+        # Cargamos la orden con sus items asociados
         order = Order.objects.select_related('user', 'shipping_address').get(id=order_code)
         
         # SEGURIDAD: Solo el dueño ve datos privados si está logueado
@@ -372,16 +373,28 @@ def track_order(request):
             courier = order.shipment.courier or "Bluexpress"
             tracking_number = order.shipment.tracking_number or tracking_number
 
-        # Datos Públicos (Cualquiera los ve)
+        # PREPARAMOS EL LISTADO DE PRODUCTOS
+        items_list = []
+        for item in order.items.all():
+            items_list.append({
+                'name': item.product.name,
+                'quantity': item.quantity,
+                'price': float(item.unit_price)
+            })
+
+        # Datos básicos (Públicos)
         response_data = {
             'success': True,
+            'id': order.id,
+            'email': order.user.email,
             'order_number': f"POLI-{order.id}",
             'status': order.get_status_display(),
             'date': order.created_at.strftime("%d/%m/%Y"),
             'is_owner': is_owner,
+            'items': items_list, # Enviamos los productos siempre para que vean qué compraron
         }
 
-        # Datos Privados (Solo para el dueño)
+        # Datos sensibles (Privados: solo para el dueño)
         if is_owner:
             response_data.update({
                 'customer_name': order.user.first_name or order.user.username,
@@ -389,6 +402,8 @@ def track_order(request):
                 'courier': courier,
                 'tracking_number': tracking_number,
                 'total': float(order.total_amount),
+                'raw_status': order.status,
+                'is_expired': False # La lógica de expiración se maneja en get_user_orders
             })
 
         return JsonResponse(response_data)
