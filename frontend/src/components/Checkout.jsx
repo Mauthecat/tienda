@@ -199,30 +199,32 @@ const Checkout = () => {
 
                             <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
                                 {cart.map(item => {
-                                    // REGLA DE LIMPIEZA: Si el precio es un string con "$", lo convertimos a número limpio.
-                                    const precioLimpio = typeof item.price === 'string' 
-                                        ? parseFloat(item.price.replace(/[^0-9.-]+/g,"")) 
-                                        : item.price;
-                                    
+                                    // LIMPIEZA DE PRECIO: Garantizamos que sea número para evitar el NaN
+                                    const precioNumerico = typeof item.price === 'string'
+                                        ? parseFloat(item.price.replace(/[^0-9.-]+/g, ""))
+                                        : parseFloat(item.price);
+
+                                    const subtotalItem = precioNumerico * item.quantity;
+
                                     return (
-                                        <div key={item.id} className="flex items-center justify-between gap-4">
+                                        <div key={item.id} className="flex items-center justify-between gap-4 border-b border-gray-50 pb-4">
                                             <div className="flex items-center gap-4">
                                                 <div className="relative">
                                                     <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-xl border border-gray-100" />
-                                                    <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                                                    <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-[10px] font-bold w-5 h-5 flex items-center justify-center rounded-full shadow-sm">
                                                         {item.quantity}
                                                     </span>
                                                 </div>
                                                 <div>
                                                     <p className="text-sm font-medium text-gray-800 line-clamp-1">{item.name}</p>
-                                                    {/* LÍNEA SOLICITADA: Muestra (Cantidad x Valor unitario) */}
-                                                    <p className="text-[10px] text-gray-400 font-bold italic">
-                                                       ({item.quantity} x {formatearDinero(precioLimpio)})
+                                                    {/* DESGLOSE SOLICITADO: (Valor x Cantidad) en pequeño */}
+                                                    <p className="text-[10px] text-gray-400 font-bold">
+                                                        ({formatearDinero(precioNumerico)} x {item.quantity})
                                                     </p>
                                                 </div>
                                             </div>
-                                            {/* Cálculo matemático garantizado sin NaN */}
-                                            <p className="text-sm font-bold text-gray-900">{formatearDinero(precioLimpio * item.quantity)}</p>
+                                            {/* Total del producto individual calculado correctamente */}
+                                            <p className="text-sm font-bold text-gray-900">{formatearDinero(subtotalItem)}</p>
                                         </div>
                                     );
                                 })}
