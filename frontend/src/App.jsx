@@ -38,7 +38,8 @@ function App() {
         const response = await axios.get(`${BASE_URL}/api/products/`);
         const formattedData = response.data.map(item => ({
           ...item,
-          price: new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(item.price),
+          //price: new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(item.price),
+          price: parseFloat(item.price),
           image: item.main_image
             ? (item.main_image.startsWith('http') ? item.main_image : `${BASE_URL}${item.main_image}`)
             : logoImg,

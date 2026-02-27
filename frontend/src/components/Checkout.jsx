@@ -28,7 +28,7 @@ const REGIONES_CHILE = [
 const Checkout = () => {
     const { cart, totalPrice } = useCart();
     const { user } = useAuth();
-    
+
     const [isLoading, setIsLoading] = useState(false);
     const [showAutoFillAlert, setShowAutoFillAlert] = useState(false);
     const [shippingCost, setShippingCost] = useState(0);
@@ -47,7 +47,7 @@ const Checkout = () => {
             const fetchProfile = async () => {
                 try {
                     const res = await axios.get(`${BASE_URL}/api/profile/`, { params: { email: user.email } });
-                    
+
                     const nombreCompleto = res.data.nombre || '';
                     const partesNombre = nombreCompleto.split(' ');
                     const nombre = partesNombre[0] || '';
@@ -62,7 +62,7 @@ const Checkout = () => {
                         direccion: res.data.direccion || '',
                         ciudad: res.data.ciudad || '',
                     }));
-                    
+
                     setShowAutoFillAlert(true);
                     setTimeout(() => setShowAutoFillAlert(false), 6000);
                 } catch (error) {
@@ -88,8 +88,8 @@ const Checkout = () => {
         setIsLoading(true);
 
         try {
-            const finalTotal = totalPrice + shippingCost; 
-            
+            const finalTotal = totalPrice + shippingCost;
+
             const payload = {
                 amount: finalTotal,
                 email: formData.email,
@@ -125,7 +125,7 @@ const Checkout = () => {
     return (
         <div className="min-h-screen bg-gray-50 pt-8 pb-16">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                
+
                 <Link to="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-indigo-600 mb-6 transition-colors">
                     <ChevronLeft size={20} /> Volver a la tienda
                 </Link>
@@ -138,12 +138,12 @@ const Checkout = () => {
                 )}
 
                 <div className="flex flex-col lg:flex-row gap-10">
-                    
+
                     {/* FORMULARIO */}
                     <div className="w-full lg:w-3/5">
                         <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
                             <h2 className="text-xl font-bold text-gray-900 mb-6 uppercase tracking-wider">Datos de Envío</h2>
-                            
+
                             <form id="checkout-form" onSubmit={handleSubmit} className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
@@ -155,7 +155,7 @@ const Checkout = () => {
                                         <input required type="text" name="apellido" value={formData.apellido} onChange={handleChange} className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400" />
                                     </div>
                                 </div>
-                                
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1">Email</label>
@@ -195,33 +195,28 @@ const Checkout = () => {
                     <div className="w-full lg:w-2/5">
                         <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 sticky top-24">
                             <h2 className="text-xl font-bold text-gray-900 mb-6 uppercase tracking-wider">Tu Pedido</h2>
-                            
-                            <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
-                                {cart.map(item => {
-                                    // Solución al NaN: Quitamos el símbolo '$' y los puntos para poder multiplicar matemáticamente
-                                    const precioLimpio = typeof item.price === 'string' ? parseInt(item.price.replace(/[$.]/g, '')) : item.price;
-                                    const totalItem = precioLimpio * item.quantity;
 
-                                    return (
-                                        <div key={item.id} className="flex items-center justify-between gap-4">
-                                            <div className="flex items-center gap-4">
-                                                <div className="relative">
-                                                    <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-xl border border-gray-100" />
-                                                    <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
-                                                        {item.quantity}
-                                                    </span>
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-medium text-gray-800 line-clamp-2">{item.name}</p>
-                                                    {item.quantity > 1 && (
-                                                        <p className="text-[10px] text-gray-400 mt-0.5">{item.quantity} x {formatearDinero(precioLimpio)} c/u</p>
-                                                    )}
-                                                </div>
+                            <div className="space-y-4 mb-6 max-h-60 overflow-y-auto pr-2">
+                                {cart.map(item => (
+                                    <div key={item.id} className="flex items-center justify-between gap-4">
+                                        <div className="flex items-center gap-4">
+                                            <div className="relative">
+                                                <img src={item.image} alt={item.name} className="w-16 h-16 object-cover rounded-xl border border-gray-100" />
+                                                <span className="absolute -top-2 -right-2 bg-gray-500 text-white text-xs w-5 h-5 flex items-center justify-center rounded-full">
+                                                    {item.quantity}
+                                                </span>
                                             </div>
-                                            <p className="text-sm font-bold text-gray-900">{formatearDinero(totalItem)}</p>
+                                            <div>
+                                                <p className="text-sm font-medium text-gray-800 line-clamp-1">{item.name}</p>
+                                                {/* LÍNEA SOLICITADA: Muestra (Cant x Valor) */}
+                                                <p className="text-[10px] text-gray-400 font-bold italic">
+                                                    ({item.quantity} x {formatearDinero(item.price)})
+                                                </p>
+                                            </div>
                                         </div>
-                                    )
-                                })}
+                                        <p className="text-sm font-bold text-gray-900">{formatearDinero(item.price * item.quantity)}</p>
+                                    </div>
+                                ))}
                             </div>
 
                             <div className="border-t border-gray-100 pt-4 space-y-3 mb-6">
@@ -243,7 +238,7 @@ const Checkout = () => {
                                 </div>
                             </div>
 
-                            <button 
+                            <button
                                 form="checkout-form"
                                 type="submit"
                                 disabled={isLoading || shippingCost === 0}
@@ -252,7 +247,7 @@ const Checkout = () => {
                                 {isLoading ? <Loader2 className="animate-spin" size={20} /> : <ShieldCheck size={20} />}
                                 {isLoading ? 'Procesando...' : (shippingCost === 0 ? 'Selecciona Región' : 'Pagar Seguro')}
                             </button>
-                            
+
                             <p className="text-xs text-gray-400 text-center mt-4 flex items-center justify-center gap-1">
                                 Envío calculado según tarifas BlueExpress XS.
                             </p>
