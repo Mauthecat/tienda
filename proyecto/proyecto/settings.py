@@ -192,27 +192,19 @@ SIMPLE_JWT = {
 }
 
 JAZZMIN_SETTINGS = {
-    # Título de la ventana
     "site_title": "Admin Policrómica",
-    # Título en la pantalla de login
     "site_header": "Policrómica",
-    # Nombre de la marca (arriba a la izquierda)
     "site_brand": "Policrómica Store",
-    
-    # Puedes poner el logo de tu frontend aquí (debe estar en tu carpeta static)
-    # "site_logo": "img/logo.jpeg",
-    
     "welcome_sign": "Bienvenida al panel de Policrómica",
     "copyright": "Policrómica",
     
-    # Modelos a mostrar en la pantalla principal y su orden
+    # 1. AQUÍ CORREGIMOS EL LINK A VERCEL
     "topmenu_links": [
         {"name": "Inicio",  "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"name": "Ver Tienda", "url": "/", "new_window": True},
+        {"name": "Ver Tienda", "url": "https://policromica.vercel.app", "new_window": True},
         {"model": "core.Order"},
     ],
 
-    # Íconos para el menú lateral (usa FontAwesome gratis)
     "icons": {
         "auth.User": "fas fa-users",
         "core.Product": "fas fa-gem",
@@ -224,35 +216,21 @@ JAZZMIN_SETTINGS = {
         "core.ContactMessage": "fas fa-envelope",
     },
     
-    # Cambiar el botón de "Ver sitio"
-    "show_ui_builder": False,
+    # 2. ACTIVAMOS EL CONSTRUCTOR VISUAL
+    "show_ui_builder": True,
 }
 
-# Aquí personalizamos los colores exactos
 JAZZMIN_UI_TWEAKS = {
-    "navbar_small_text": False,
-    "footer_small_text": False,
-    "body_small_text": False,
-    "brand_small_text": False,
-    "brand_colour": "navbar-light",
+    # Usamos "minty" porque trae tonos cyan y amigables por defecto para el modo claro
+    "theme": "minty",
+    # Usamos "darkly" como base para el modo oscuro
+    "dark_mode_theme": "darkly",
+    
+    "navbar": "navbar-info navbar-dark",
+    "sidebar": "sidebar-light-info",
     "accent": "accent-info",
-    "navbar": "navbar-info navbar-dark", # El tono principal superior
-    "no_navbar_border": False,
-    "navbar_fixed": True,
-    "layout_boxed": False,
-    "footer_fixed": False,
-    "sidebar_fixed": True,
-    "sidebar": "sidebar-light-info", # Panel lateral claro y amigable
-    "sidebar_nav_small_text": False,
-    "sidebar_disable_expand": False,
-    "sidebar_nav_child_indent": False,
-    "sidebar_nav_compact_style": False,
-    "sidebar_nav_legacy_style": False,
-    "sidebar_nav_flat_style": False,
-    "theme": "litera", # Tema de Bootstrap base (claro, limpio y moderno)
-    "dark_mode_theme": None,
     "button_classes": {
-        "primary": "btn-primary", # Puedes afinar los botones
+        "primary": "btn-info",
         "secondary": "btn-secondary",
         "info": "btn-info",
         "warning": "btn-warning",
