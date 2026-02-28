@@ -168,7 +168,7 @@ STORAGES = {
     },
     # Gestión de archivos ESTÁTICOS (CSS/JS admin) -> A Whitenoise
     "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
 #DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
