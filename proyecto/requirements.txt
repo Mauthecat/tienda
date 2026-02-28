@@ -10,3 +10,4 @@ djangorestframework
 django-cors-headers
 Pillow
 djangorestframework-simplejwt
+django-jazzmin
