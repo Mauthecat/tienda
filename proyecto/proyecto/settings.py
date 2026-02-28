@@ -151,7 +151,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "https://policromica.vercel.app",
