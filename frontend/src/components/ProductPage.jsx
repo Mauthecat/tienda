@@ -1,20 +1,19 @@
 import { useState, useEffect } from 'react';
-import { Filter, X, ShoppingCart } from 'lucide-react';
-import { Link } from 'react-router-dom';
-import { useCart } from '../context/CartContext'; // IMPORTAMOS EL CARRITO
+import { Filter, X, ShoppingCart, ChevronLeft, Home } from 'lucide-react'; // <-- NUEVO: Importamos ChevronLeft y Home
+import { Link, useNavigate } from 'react-router-dom'; // <-- NUEVO: Importamos useNavigate
+import { useCart } from '../context/CartContext';
 import logoImg from '../assets/logo.jpeg';
 
 const ProductPage = ({ title, products, bannerImage }) => {
-    const { addToCart } = useCart(); // EXTRAEMOS LA FUNCIÓN DE AÑADIR
+    const { addToCart } = useCart();
+    const navigate = useNavigate(); // <-- NUEVO: Inicializamos la función para volver atrás
     const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);
     const [sortBy, setSortBy] = useState('relevance');
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 12;
 
-    // Helper para formatear dinero (mantenemos la consistencia visual de $6.000)
     const formatearDinero = (monto) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(monto);
 
-    // Filtros simplificados para Precios
     const [priceFilter, setPriceFilter] = useState({
         normal: false,
         oferta: false,
@@ -23,30 +22,17 @@ const ProductPage = ({ title, products, bannerImage }) => {
     const getSortedProducts = () => {
         let sorted = [...products];
 
-        // LÓGICA DE FILTRADO (Usa discount_percent de tu base de datos)
         if (priceFilter.normal && !priceFilter.oferta) {
-            // Si tiene 0 o nada de descuento, es normal
             sorted = sorted.filter(p => !p.discount_percent || p.discount_percent === 0);
         } else if (!priceFilter.normal && priceFilter.oferta) {
-            // Si tiene más de 0, es oferta
             sorted = sorted.filter(p => p.discount_percent && p.discount_percent > 0);
         }
 
-        // LÓGICA DE ORDENAMIENTO (Corregida para números)
         switch (sortBy) {
             case 'price-asc':
-                return sorted.sort((a, b) => {
-                    // Ya no usamos .replace porque ahora son números puros
-                    const priceA = a.price;
-                    const priceB = b.price;
-                    return priceA - priceB;
-                });
+                return sorted.sort((a, b) => a.price - b.price);
             case 'price-desc':
-                return sorted.sort((a, b) => {
-                    const priceA = a.price;
-                    const priceB = b.price;
-                    return priceB - priceA;
-                });
+                return sorted.sort((a, b) => b.price - a.price);
             case 'name':
                 return sorted.sort((a, b) => a.name.localeCompare(b.name));
             default:
@@ -65,10 +51,9 @@ const ProductPage = ({ title, products, bannerImage }) => {
         window.scrollTo(0, 0);
     }, [currentPage]);
 
-    // Función para manejar los checkboxes
     const handleFilterChange = (type) => {
         setPriceFilter(prev => ({ ...prev, [type]: !prev[type] }));
-        setCurrentPage(1); // Volver a la página 1 al filtrar
+        setCurrentPage(1); 
     };
 
     return (
@@ -88,7 +73,22 @@ const ProductPage = ({ title, products, bannerImage }) => {
                 </div>
             </div>
 
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+                {/* === NUEVO: MIGA DE PAN (BREADCRUMB) Y BOTÓN VOLVER === */}
+                <div className="flex items-center flex-wrap gap-2 text-sm text-gray-600 mb-8 font-medium">
+                    <button 
+                        onClick={() => navigate(-1)} 
+                        className="flex items-center gap-1 text-pink-600 bg-pink-50 hover:bg-pink-100 hover:text-pink-700 px-3 py-1.5 rounded-xl transition-colors mr-2 md:mr-4 shadow-sm border border-pink-100"
+                    >
+                        <ChevronLeft size={16} /> Volver
+                    </button>
+                    <Link to="/" className="hover:text-indigo-600 flex items-center gap-1 transition-colors">
+                        <Home size={14} /> Inicio
+                    </Link>
+                    <span className="text-gray-400">/</span>
+                    <span className="text-gray-900 font-bold capitalize">{title}</span>
+                </div>
 
                 <div className="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
 
@@ -182,7 +182,6 @@ const ProductPage = ({ title, products, bannerImage }) => {
                                                     {product.name}
                                                 </h3>
                                                 <div className="flex justify-between items-center mt-1">
-                                                    {/* Usamos el helper para que el número se vea como $6.000 */}
                                                     <span className="text-indigo-600 font-bold text-base md:text-lg">
                                                         {formatearDinero(product.price)}
                                                     </span>
