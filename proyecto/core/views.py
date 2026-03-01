@@ -11,6 +11,7 @@ import hashlib
 import requests
 import os
 from urllib.parse import urlencode
+from django.core.mail import send_mail
 
 User = get_user_model()
 
@@ -167,6 +168,8 @@ def payment_confirm(request):
                             order.status = Order.StatusChoices.PAID
                             order.save()
                             
+                            items_html = "" # <--- Aquí guardaremos la lista de productos para el correo
+                            
                             for item in order.items.all():
                                 product = item.product
                                 if product.stock >= item.quantity:
@@ -175,6 +178,71 @@ def payment_confirm(request):
                                     product.stock = 0
                                 product.save()
                                 
+                                # Generamos la lista de productos en HTML para el correo
+                                subtotal_item = int(item.unit_price * item.quantity)
+                                items_html += f'<li style="margin-bottom: 8px; color: #374151; font-size: 14px;"><strong>{item.quantity}x</strong> {product.name} <span style="color: #db2777; font-weight: bold; float: right;">${subtotal_item}</span></li>'
+                            
+                            # =========================================================
+                            # LÓGICA DE ENVÍO DE CORREO AL CLIENTE
+                            # =========================================================
+                            try:
+                                subject = f"¡Tu pedido {order_id_str} está confirmado! - Policrómica"
+                                
+                                # Diseño HTML súper bonito con los colores de tu tienda
+                                html_message = f"""
+                                <html>
+                                <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; margin: 0; padding: 20px; background-color: #f9fafb;">
+                                    <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #e5e7eb;">
+                                        <div style="background-color: #b3f3f5; padding: 30px; text-align: center;">
+                                            <h1 style="color: #083344; margin: 0; font-size: 24px; text-transform: uppercase; letter-spacing: 2px;">¡Pago Exitoso!</h1>
+                                        </div>
+                                        <div style="padding: 30px;">
+                                            <p style="font-size: 16px;">Hola <strong>{order.user.first_name or 'Cliente'}</strong>,</p>
+                                            <p style="font-size: 16px;">Hemos recibido tu pago correctamente. Tu pedido ya está en cola para ser preparado con mucho cariño.</p>
+                                            
+                                            <div style="background-color: #feecd4; padding: 20px; border-radius: 12px; margin: 25px 0; border: 1px solid #fbbf24;">
+                                                <h2 style="margin-top: 0; color: #9d174d; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Resumen de tu pedido</h2>
+                                                
+                                                <div style="background-color: #ffffff; padding: 15px; border-radius: 8px; text-align: center; margin-bottom: 20px;">
+                                                    <p style="margin: 0 0 5px 0; font-size: 12px; color: #6b7280; text-transform: uppercase; font-weight: bold;">Código de Seguimiento</p>
+                                                    <p style="font-size: 28px; font-weight: 900; color: #0f172a; margin: 0; letter-spacing: 2px;">{order_id_str}</p>
+                                                </div>
+                                                
+                                                <p style="font-size: 12px; color: #6b7280; margin-top: 0; text-align: center;">(Ingresa este código en nuestra sección de Envíos para rastrear tu paquete)</p>
+                                                
+                                                <hr style="border: 0; border-top: 1px dashed #f59e0b; margin: 20px 0;">
+                                                
+                                                <ul style="list-style-type: none; padding: 0; margin: 0;">
+                                                    {items_html}
+                                                </ul>
+                                                
+                                                <hr style="border: 0; border-top: 1px dashed #f59e0b; margin: 20px 0;">
+                                                
+                                                <p style="font-size: 20px; text-align: right; margin: 0; color: #be185d;"><strong>Total Pagado: <span style="font-size: 24px;">${int(order.total_amount)}</span></strong></p>
+                                            </div>
+                                            
+                                            <p style="font-size: 14px; color: #6b7280;">Te enviaremos una notificación al número o correo de contacto cuando tu paquete vaya en camino.</p>
+                                            <p style="font-size: 16px; margin-bottom: 0;">Un abrazo,<br><strong style="color: #db2777;">El equipo de Policrómica</strong></p>
+                                        </div>
+                                    </div>
+                                </body>
+                                </html>
+                                """
+                                
+                                # Versión texto plano por si el correo del cliente no soporta HTML
+                                plain_message = f"Hola {order.user.first_name},\n\nTu pedido {order_id_str} ha sido confirmado. Total pagado: ${int(order.total_amount)}.\n\nGuarda tu código para rastrearlo en la página.\n\nGracias por comprar en Policrómica."
+                                
+                                send_mail(
+                                    subject=subject,
+                                    message=plain_message,
+                                    from_email=settings.DEFAULT_FROM_EMAIL,
+                                    recipient_list=[order.user.email],
+                                    html_message=html_message,
+                                    fail_silently=True # Si falla, la app no explota
+                                )
+                            except Exception as e:
+                                print(f"Error al enviar el correo: {e}")
+                                    
                     except Order.DoesNotExist:
                         pass
                         
