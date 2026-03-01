@@ -35,7 +35,8 @@ def get_products(request):
             'category__name': product.category.name if product.category else "Sin categoría",
             'main_image': image_url,
             'all_images': all_images,
-            'description': product.description
+            'description': product.description,
+            'is_featured': product.is_featured
         })
     return JsonResponse(products_list, safe=False)
 

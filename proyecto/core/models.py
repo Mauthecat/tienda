@@ -68,6 +68,7 @@ class Product(models.Model):
     stock = models.PositiveIntegerField(default=0)
     discount_percent = models.PositiveIntegerField(default=0, verbose_name="% Descuento")
     is_active = models.BooleanField(default=True)
+    is_featured = models.BooleanField(default=False, verbose_name="Destacado")
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

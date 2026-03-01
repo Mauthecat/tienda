@@ -9,11 +9,18 @@ class ProductImageInline(admin.TabularInline):
 # 2. Configuración del Producto
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ('name', 'sku', 'price', 'stock', 'active_status') # Qué columnas ver en la lista
-    search_fields = ('name', 'sku') # Barra de búsqueda
-    list_filter = ('category',) # Filtro lateral
-    inlines = [ProductImageInline] # Aquí metemos las imágenes
-
+    # Agregamos 'is_featured' para verlo en la tabla
+    list_display = ('name', 'sku', 'price', 'stock', 'is_featured', 'active_status') 
+    
+    # NUEVO: Permitir editar la casilla directamente desde la lista
+    list_editable = ('is_featured',) 
+    
+    search_fields = ('name', 'sku')
+    
+    # NUEVO: Agregamos el filtro lateral para buscar rápido los destacados
+    list_filter = ('category', 'is_featured') 
+    
+    inlines = [ProductImageInline]
     # Pequeño truco para mostrar íconos o texto custom
     def active_status(self, obj):
         return obj.is_active
