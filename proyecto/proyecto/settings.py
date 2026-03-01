@@ -218,7 +218,7 @@ JAZZMIN_SETTINGS = {
     },
     
     # 2. ACTIVAMOS EL CONSTRUCTOR VISUAL
-    "show_ui_builder": True,
+    "show_ui_builder": False,
 }
 
 JAZZMIN_UI_TWEAKS = {

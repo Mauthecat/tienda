@@ -252,7 +252,7 @@ const Envios = () => {
                                     <span className="transition group-open:rotate-180"><ChevronDown size={18} /></span>
                                 </summary>
                                 <div className="text-gray-600 text-sm mt-2 p-5 pt-0 leading-relaxed border-t border-gray-100">
-                                    Realizamos nuestros envíos a todo Chile principalmente a través de BlueExpress, Starken y Chilexpress.
+                                    Realizamos nuestros envíos a todo Chile principalmente a través de BlueExpress.
                                 </div>
                             </details>
                             <details className="group border border-gray-100 rounded-2xl bg-gray-50 cursor-pointer">
