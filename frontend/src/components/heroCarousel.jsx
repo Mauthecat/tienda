@@ -35,31 +35,66 @@ const HeroCarousel = ({ slides }) => {
   return (
     <div className="w-full h-[250px] md:h-[450px] relative group shadow-lg">
       
-      {/* Imagen de Fondo clickeable */}
+      {/* Contenedor principal clickeable */}
       <Link to={currentSlide.link} className="block w-full h-full relative overflow-hidden">
+        
+        {/* Imagen de Fondo */}
         <div 
           style={{ backgroundImage: `url(${currentSlide.image})` }} 
-          className="w-full h-full bg-center bg-cover duration-700 ease-in-out transition-all hover:scale-105"
+          className="w-full h-full bg-center bg-cover duration-700 ease-in-out transition-transform group-hover:scale-105"
         >
-          <div className="w-full h-full bg-black/10 hover:bg-black/20 transition-colors"></div>
+          {/* Capa oscura (Overlay) para que el texto blanco resalte siempre */}
+          <div className="w-full h-full bg-black/30 group-hover:bg-black/40 transition-colors duration-500"></div>
         </div>
+
+        {/* TEXTO Y BOTÓN (Aparecen sobre la imagen) */}
+        <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-4">
+            <h2 
+                key={currentIndex} // El key fuerza a que la animación se repita al cambiar de slide
+                className="text-4xl md:text-6xl font-black text-white drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] uppercase tracking-widest mb-6 animate-in fade-in slide-in-from-bottom-5 duration-700"
+            >
+                {currentSlide.title}
+            </h2>
+            <span className="bg-pink-500 text-white text-xs md:text-sm font-bold py-3 px-8 rounded-full shadow-lg shadow-pink-500/30 transition-transform group-hover:scale-110 group-hover:bg-pink-600 uppercase tracking-widest">
+                Descubrir Colección
+            </span>
+        </div>
+
       </Link>
 
-      <div className="hidden group-hover:block absolute top-[50%] -translate-y-1/2 left-5 text-2xl rounded-full p-2 bg-white/30 hover:bg-white/50 text-white cursor-pointer transition backdrop-blur-sm pointer-events-auto z-10">
-        <ChevronLeft onClick={prevSlide} size={30} />
+      {/* Flecha Izquierda */}
+      <div className="hidden group-hover:block absolute top-[50%] -translate-y-1/2 left-5 text-2xl rounded-full p-2 bg-white/30 hover:bg-white/80 text-gray-800 cursor-pointer transition backdrop-blur-sm pointer-events-auto z-10 shadow-sm">
+        <ChevronLeft 
+            onClick={(e) => { 
+                e.preventDefault(); // Evita que al tocar la flecha te lleve al link
+                prevSlide(); 
+            }} 
+            size={30} 
+        />
       </div>
 
-      <div className="hidden group-hover:block absolute top-[50%] -translate-y-1/2 right-5 text-2xl rounded-full p-2 bg-white/30 hover:bg-white/50 text-white cursor-pointer transition backdrop-blur-sm pointer-events-auto z-10">
-        <ChevronRight onClick={nextSlide} size={30} />
+      {/* Flecha Derecha */}
+      <div className="hidden group-hover:block absolute top-[50%] -translate-y-1/2 right-5 text-2xl rounded-full p-2 bg-white/30 hover:bg-white/80 text-gray-800 cursor-pointer transition backdrop-blur-sm pointer-events-auto z-10 shadow-sm">
+        <ChevronRight 
+            onClick={(e) => { 
+                e.preventDefault(); // Evita que al tocar la flecha te lleve al link
+                nextSlide(); 
+            }} 
+            size={30} 
+        />
       </div>
 
-      <div className="absolute bottom-4 left-0 right-0 flex justify-center gap-2 z-10">
+      {/* Puntos inferiores */}
+      <div className="absolute bottom-6 left-0 right-0 flex justify-center gap-3 z-10">
         {slides.map((_, slideIndex) => (
           <div
             key={slideIndex}
-            onClick={() => setCurrentIndex(slideIndex)}
+            onClick={(e) => { 
+                e.preventDefault(); 
+                setCurrentIndex(slideIndex); 
+            }}
             className={`cursor-pointer w-3 h-3 rounded-full transition-all ${
-              currentIndex === slideIndex ? "bg-white scale-125 shadow" : "bg-white/50"
+              currentIndex === slideIndex ? "bg-white scale-125 shadow-md" : "bg-white/50 hover:bg-white/80"
             }`}
           ></div>
         ))}
