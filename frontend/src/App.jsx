@@ -114,10 +114,11 @@ function App() {
 
   const arosProducts = products.filter(p => p.category__name === 'Aros');
   const cortadoresProducts = products.filter(p => p.category__name === 'Cortadores');
+  const destacadosProducts = products.filter(p => p.is_featured);
   const newArrivals = products.slice(-10);
 
   const heroSlides = [
-    { image: logoImg, link: '/', title: 'Destacados' },
+    { image: logoImg, link: '/destacados', title: 'Destacados' },
     { image: arosBanner, link: '/aros', title: 'Aros' },
     { image: cortadoresBanner, link: '/cortadores', title: 'Cortadores' }
   ];
@@ -196,6 +197,7 @@ function App() {
               <Route path="/checkout/status" element={<CheckoutStatus />} />
               <Route path="/envios" element={<Envios />} />
               <Route path="/favoritos" element={<Favoritos />} />
+              <Route path="/destacados" element={ <ProductPage title="Destacados de la Semana" products={destacadosProducts} bannerImage={logoImg} /> } />
             </Routes>
           )}
 

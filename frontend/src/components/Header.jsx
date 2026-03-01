@@ -11,6 +11,7 @@ const Header = ({ products = [] }) => {
 
     const navigation = [
         { name: 'Inicio', href: '/' },
+        { name: 'Destacados', href: '/destacados' },
         { name: 'Aros', href: '/aros' },
         { name: 'Cortadores', href: '/cortadores' },
     ];
