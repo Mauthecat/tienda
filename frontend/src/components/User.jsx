@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { 
     Mail, Lock, User as UserIcon, LogIn, UserPlus, LogOut, 
     Package, Settings, Heart, ShoppingCart, Save, Loader2, 
-    CreditCard, Clock3, ChevronDown, Truck, MapPin 
+    CreditCard, Clock3, ChevronDown, Truck, MapPin, Phone 
 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
