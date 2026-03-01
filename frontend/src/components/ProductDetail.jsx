@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link } from 'react-router-dom';
-import { ShoppingBag, ChevronLeft } from 'lucide-react'; // Quitamos Star de aquí
+import { useParams, Link, useNavigate } from 'react-router-dom'; // <-- NUEVO: Agregamos useNavigate
+import { ShoppingBag, ChevronLeft, Home } from 'lucide-react'; // <-- NUEVO: Agregamos Home
 import { useCart } from '../context/CartContext';
 
 const ProductDetail = ({ products }) => {
     const { id } = useParams();
+    const navigate = useNavigate(); // <-- NUEVO: Inicializamos la función para volver
     const product = products.find(p => p.id.toString() === id);
     const { addToCart } = useCart();
     const [selectedImage, setSelectedImage] = useState(null);
@@ -43,16 +44,24 @@ const ProductDetail = ({ products }) => {
         <div className="min-h-screen bg-gray-50 pt-8 pb-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-                {/* Migas de pan */}
-                <nav className="flex text-sm text-gray-500 mb-8 gap-2">
-                    <Link to="/" className="hover:text-indigo-600 transition-colors">Inicio</Link>
-                    <span>/</span>
+                {/* === NUEVO: MIGA DE PAN Y BOTÓN VOLVER === */}
+                <div className="flex items-center flex-wrap gap-2 text-sm text-gray-500 mb-8 font-medium">
+                    <button 
+                        onClick={() => navigate(-1)} 
+                        className="flex items-center gap-1 text-pink-600 bg-pink-50 hover:bg-pink-100 hover:text-pink-700 px-3 py-1.5 rounded-xl transition-colors mr-2 md:mr-4 shadow-sm border border-pink-100"
+                    >
+                        <ChevronLeft size={16} /> Volver
+                    </button>
+                    <Link to="/" className="hover:text-indigo-600 flex items-center gap-1 transition-colors">
+                        <Home size={14} /> Inicio
+                    </Link>
+                    <span className="text-gray-400">/</span>
                     <Link to={`/${product.category__name.toLowerCase()}`} className="hover:text-indigo-600 transition-colors">
                         {product.category__name}
                     </Link>
-                    <span>/</span>
-                    <span className="text-gray-800 font-medium truncate">{product.name}</span>
-                </nav>
+                    <span className="text-gray-400">/</span>
+                    <span className="text-gray-900 font-bold truncate">{product.name}</span>
+                </div>
 
                 {/* DETALLE DEL PRODUCTO */}
                 <div className="flex flex-col md:flex-row gap-12 bg-white p-6 md:p-12 rounded-3xl shadow-sm border border-gray-100 mb-16">
@@ -89,7 +98,6 @@ const ProductDetail = ({ products }) => {
                     <div className="w-full md:w-1/2 flex flex-col justify-center">
                         <p className="text-gray-500 uppercase tracking-widest text-sm font-bold mb-2">Policromica</p>
 
-                        {/* Removimos la sección de estrellas y reseñas de aquí */}
                         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 leading-tight mb-6">
                             {product.name}
                         </h1>
@@ -123,7 +131,7 @@ const ProductDetail = ({ products }) => {
                     </div>
                 </div>
 
-                {/* NUEVA SECCIÓN: ARTÍCULOS QUE PODRÍAN GUSTARTE */}
+                {/* SECCIÓN: ARTÍCULOS QUE PODRÍAN GUSTARTE */}
                 {similarProducts.length > 0 && (
                     <div className="mt-16">
                         <h2 className="text-2xl font-bold text-gray-900 mb-8 uppercase tracking-wider">
