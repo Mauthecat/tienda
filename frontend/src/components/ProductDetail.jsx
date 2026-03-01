@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
-import { useParams, Link, useNavigate } from 'react-router-dom'; // <-- NUEVO: Agregamos useNavigate
-import { ShoppingBag, ChevronLeft, Home } from 'lucide-react'; // <-- NUEVO: Agregamos Home
+import { useParams, Link, useNavigate } from 'react-router-dom'; 
+import { ShoppingBag, ChevronLeft, Home } from 'lucide-react'; 
 import { useCart } from '../context/CartContext';
 
 const ProductDetail = ({ products }) => {
     const { id } = useParams();
-    const navigate = useNavigate(); // <-- NUEVO: Inicializamos la función para volver
+    const navigate = useNavigate(); 
     const product = products.find(p => p.id.toString() === id);
     const { addToCart } = useCart();
     const [selectedImage, setSelectedImage] = useState(null);
+
+    // ---> NUEVO: Helper para formatear dinero en CLP <---
+    const formatearDinero = (monto) => new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(monto);
 
     useEffect(() => {
         if (product && product.images && product.images.length > 0) {
@@ -35,7 +38,6 @@ const ProductDetail = ({ products }) => {
         );
     }
 
-    // LÓGICA NUEVA: Buscar productos similares (misma categoría, excluyendo el actual, máximo 4)
     const similarProducts = products
         .filter(p => p.category__name === product.category__name && p.id.toString() !== id)
         .slice(0, 4);
@@ -44,7 +46,7 @@ const ProductDetail = ({ products }) => {
         <div className="min-h-screen bg-gray-50 pt-8 pb-16">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
 
-                {/* === NUEVO: MIGA DE PAN Y BOTÓN VOLVER === */}
+                {/* MIGA DE PAN Y BOTÓN VOLVER */}
                 <div className="flex items-center flex-wrap gap-2 text-sm text-gray-500 mb-8 font-medium">
                     <button 
                         onClick={() => navigate(-1)} 
@@ -103,7 +105,8 @@ const ProductDetail = ({ products }) => {
                         </h1>
 
                         <div className="flex items-end gap-4 mb-8 pb-8 border-b border-gray-100">
-                            <span className="text-4xl font-bold text-pink-600">{product.price}</span>
+                            {/* ---> CAMBIO: Aplicamos el formateador aquí <--- */}
+                            <span className="text-4xl font-bold text-pink-600">{formatearDinero(product.price)}</span>
                         </div>
 
                         <button
@@ -124,7 +127,7 @@ const ProductDetail = ({ products }) => {
 
                             <div className="border border-gray-200 rounded-2xl p-4">
                                 <h3 className="font-bold text-gray-900">Envíos y Entregas</h3>
-                                <p className="text-gray-500 text-sm mt-2">Envíos a todo Chile vía Starken o Chilexpress. Despachamos en 48 hrs hábiles.</p>
+                                <p className="text-gray-500 text-sm mt-2">Envíos a todo Chile vía Bluexpress. Despachamos en 48 hrs hábiles.</p>
                             </div>
                         </div>
 
@@ -157,7 +160,8 @@ const ProductDetail = ({ products }) => {
                                             {similar.name}
                                         </h3>
                                         <div className="mt-auto pt-2">
-                                            <span className="font-bold text-pink-600">{similar.price}</span>
+                                            {/* ---> CAMBIO: Aplicamos el formateador aquí también <--- */}
+                                            <span className="font-bold text-pink-600">{formatearDinero(similar.price)}</span>
                                         </div>
                                     </div>
                                 </Link>
