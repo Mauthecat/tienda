@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { Truck, Search, Package, HelpCircle, ChevronDown, User, MapPin, CreditCard, Loader2, Clock3, ShoppingCart } from 'lucide-react';
 import axios from 'axios';
-import { useAuth } from '../context/AuthContext'; // AÑADIDO: Importamos el contexto de usuario
+import { useAuth } from '../context/AuthContext'; 
 
 const Envios = () => {
-    const { user } = useAuth(); // AÑADIDO: Obtenemos el usuario actual
+    const { user } = useAuth(); 
     const [trackingCode, setTrackingCode] = useState('');
     const [trackingResult, setTrackingResult] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
@@ -22,7 +22,6 @@ const Envios = () => {
         setTrackingResult(null);
 
         try {
-            // AÑADIDO: Solo intentamos buscar el token si el usuario existe en el contexto
             let headers = {};
             if (user) {
                 const token = localStorage.getItem('access_token');
@@ -74,6 +73,19 @@ const Envios = () => {
             setIsRetryingPayment(false);
         }
     };
+
+    // ---> NUEVA LÓGICA: Calcular Subtotal y Envío <---
+    const calcularDesglose = () => {
+        if (!trackingResult) return { subtotal: 0, envio: 0 };
+        
+        const subtotal = trackingResult.items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+        // Si el total de la orden es mayor al subtotal de los productos, la diferencia es el envío
+        const envio = trackingResult.total > subtotal ? trackingResult.total - subtotal : 0;
+        
+        return { subtotal, envio };
+    };
+
+    const { subtotal, envio } = calcularDesglose();
 
     return (
         <div className="min-h-screen bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
@@ -138,18 +150,35 @@ const Envios = () => {
                                     </span>
                                 </div>
 
-                                {/* LISTADO DE PRODUCTOS PROTEGIDO */}
+                                {/* LISTADO DE PRODUCTOS PROTEGIDO Y DESGLOSE */}
                                 <div className="mb-6 bg-gray-50/50 p-5 rounded-2xl border border-gray-100">
                                     <p className="text-[10px] text-indigo-900 uppercase tracking-widest font-black mb-4 flex items-center gap-2">
                                         <ShoppingCart size={14}/> Resumen del Pedido
                                     </p>
-                                    <div className="space-y-2">
+                                    
+                                    <div className="space-y-2 mb-4 border-b border-gray-200 pb-4">
                                         {(trackingResult.items || []).map((item, idx) => (
                                             <div key={idx} className="flex justify-between text-xs border-b border-white pb-1 last:border-0">
-                                                <span className="text-gray-700 font-bold">x{item.quantity} {item.name}</span>
+                                                <span className="text-gray-700 font-medium">x{item.quantity} {item.name}</span>
                                                 <span className="text-gray-500 font-medium">${new Intl.NumberFormat('es-CL').format(item.price * item.quantity)}</span>
                                             </div>
                                         ))}
+                                    </div>
+
+                                    {/* ---> NUEVO: Desglose de precios <--- */}
+                                    <div className="space-y-1 text-xs">
+                                        <div className="flex justify-between text-gray-500">
+                                            <span>Subtotal</span>
+                                            <span>${new Intl.NumberFormat('es-CL').format(subtotal)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-gray-500 pb-2 border-b border-gray-200">
+                                            <span>Envío</span>
+                                            <span>${new Intl.NumberFormat('es-CL').format(envio)}</span>
+                                        </div>
+                                        <div className="flex justify-between text-sm font-black text-indigo-900 pt-2">
+                                            <span className="uppercase tracking-widest">Total</span>
+                                            <span>${new Intl.NumberFormat('es-CL').format(trackingResult.total)}</span>
+                                        </div>
                                     </div>
                                 </div>
 
