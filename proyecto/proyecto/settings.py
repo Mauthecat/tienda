@@ -169,7 +169,7 @@ STORAGES = {
     },
     # Gestión de archivos ESTÁTICOS (CSS/JS admin) -> A Whitenoise
     "staticfiles": {
-        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+        "BACKEND": "whitenoise.storage.CompressedStaticFilesStorage",
     },
 }
 #DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
