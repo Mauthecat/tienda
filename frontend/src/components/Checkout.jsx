@@ -27,7 +27,7 @@ const REGIONES_CHILE = [
 const Checkout = () => {
     const { cart, totalPrice } = useCart();
     const { user } = useAuth();
-    
+
     const [isLoading, setIsLoading] = useState(false);
     const [showAutoFillAlert, setShowAutoFillAlert] = useState(false);
     const [shippingCost, setShippingCost] = useState(0);
@@ -58,7 +58,7 @@ const Checkout = () => {
                     const res = await axios.get(`${BASE_URL}/api/profile/`, { params: { email: user.email } });
                     const nombreCompleto = res.data.nombre || '';
                     const partesNombre = nombreCompleto.split(' ');
-                    
+
                     setFormData(prev => ({
                         ...prev,
                         nombre: partesNombre[0] || '',
@@ -66,9 +66,10 @@ const Checkout = () => {
                         email: user.email,
                         telefono: res.data.telefono || '',
                         direccion: res.data.direccion || '',
-                        ciudad: res.data.ciudad || '',
+                        ciudad: 'Sin ciudad', // Puedes borrar este campo visual más adelante si quieres
+                        region: res.data.ciudad || ''
                     }));
-                    
+
                     setShowAutoFillAlert(true);
                     setTimeout(() => setShowAutoFillAlert(false), 6000);
                 } catch (error) {
@@ -95,7 +96,7 @@ const Checkout = () => {
 
         try {
             const finalTotal = totalPrice + shippingCost;
-            
+
             const payload = {
                 amount: finalTotal,
                 email: formData.email,
@@ -126,7 +127,7 @@ const Checkout = () => {
     return (
         <div className="min-h-screen bg-gray-50 pt-8 pb-16">
             <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-                
+
                 <Link to="/" className="inline-flex items-center gap-2 text-gray-500 hover:text-indigo-600 mb-6 transition-colors font-medium">
                     <ChevronLeft size={20} /> Volver a la tienda
                 </Link>
@@ -139,12 +140,12 @@ const Checkout = () => {
                 )}
 
                 <div className="flex flex-col lg:flex-row gap-10">
-                    
+
                     {/* FORMULARIO DE ENVÍO */}
                     <div className="w-full lg:w-3/5">
                         <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100">
                             <h2 className="text-xl font-bold text-gray-900 mb-6 uppercase tracking-wider">Datos de Envío</h2>
-                            
+
                             <form id="checkout-form" onSubmit={handleSubmit} className="space-y-4">
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
@@ -156,7 +157,7 @@ const Checkout = () => {
                                         <input required type="text" name="apellido" value={formData.apellido} onChange={handleChange} className="w-full border border-gray-200 rounded-xl p-3 focus:outline-none focus:border-indigo-400 focus:ring-1 focus:ring-indigo-400" />
                                     </div>
                                 </div>
-                                
+
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                     <div>
                                         <label className="block text-xs text-gray-500 uppercase tracking-wider mb-1 font-bold">Email</label>
@@ -196,7 +197,7 @@ const Checkout = () => {
                     <div className="w-full lg:w-2/5">
                         <div className="bg-white p-6 md:p-8 rounded-3xl shadow-sm border border-gray-100 sticky top-24">
                             <h2 className="text-xl font-bold text-gray-900 mb-6 uppercase tracking-wider">Tu Pedido</h2>
-                            
+
                             {/* AJUSTE DE SCROLL: lg:max-h-none para que se vea completo en PC */}
                             <div className="space-y-4 mb-6 max-h-[400px] lg:max-h-none overflow-y-auto pr-2 custom-scrollbar">
                                 {cart.map(item => {
@@ -216,7 +217,7 @@ const Checkout = () => {
                                                     <p className="text-sm font-medium text-gray-800 line-clamp-1">{item.name}</p>
                                                     {/* DESGLOSE SOLICITADO */}
                                                     <p className="text-[10px] text-gray-400 font-bold italic">
-                                                       ({item.quantity} x {formatearDinero(precioUnitario)})
+                                                        ({item.quantity} x {formatearDinero(precioUnitario)})
                                                     </p>
                                                 </div>
                                             </div>
@@ -245,7 +246,7 @@ const Checkout = () => {
                                 </div>
                             </div>
 
-                            <button 
+                            <button
                                 form="checkout-form"
                                 type="submit"
                                 disabled={isLoading || shippingCost === 0}
@@ -254,7 +255,7 @@ const Checkout = () => {
                                 {isLoading ? <Loader2 className="animate-spin" size={20} /> : <ShieldCheck size={20} />}
                                 {isLoading ? 'Procesando...' : (shippingCost === 0 ? 'Selecciona Región' : 'Pagar Seguro')}
                             </button>
-                            
+
                             <p className="text-[10px] text-gray-400 text-center mt-4">
                                 Envío calculado según tarifas BlueExpress XS (Rancagua a Región seleccionada).
                             </p>

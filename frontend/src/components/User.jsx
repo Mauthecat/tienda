@@ -10,6 +10,16 @@ import { useCart } from '../context/CartContext';
 import axios from 'axios';
 import logoImg from '../assets/logo.jpeg';
 
+// ---> NUEVO: Importamos las mismas regiones del Checkout <---
+const REGIONES_CHILE = [
+    "Región de Arica y Parinacota", "Región de Tarapacá", "Región de Antofagasta", 
+    "Región de Atacama", "Región de Coquimbo", "Región de Valparaíso", 
+    "Región Metropolitana", "Región del Libertador Gral. Bernardo O'Higgins", 
+    "Región del Maule", "Región de Ñuble", "Región del Biobío", 
+    "Región de La Araucanía", "Región de Los Ríos", "Región de Los Lagos", 
+    "Región de Aysén", "Región de Magallanes"
+];
+
 const User = () => {
     const { user, login, register, logout, loading } = useAuth();
     const { addToCart } = useCart();
@@ -298,10 +308,23 @@ const User = () => {
                                                     <input type="text" name="direccion" value={profileData.direccion} onChange={handleProfileChange} placeholder="Calle, Número, Depto..." className="w-full bg-white border border-gray-200 rounded-xl py-3 pl-10 pr-4 text-sm focus:ring-2 focus:ring-cyan-100 outline-none transition-all" />
                                                 </div>
                                             </div>
+                                            
+                                            {/* ---> NUEVO: Selector de Región en lugar de input libre <--- */}
                                             <div className="space-y-1">
-                                                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Ciudad</label>
-                                                <input type="text" name="ciudad" value={profileData.ciudad} onChange={handleProfileChange} className="w-full bg-white border border-gray-200 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-cyan-100 outline-none transition-all" />
+                                                <label className="text-[10px] font-black uppercase text-gray-400 ml-1">Región</label>
+                                                <select 
+                                                    name="ciudad" // Seguimos usando 'ciudad' para no romper la base de datos de Django
+                                                    value={profileData.ciudad} 
+                                                    onChange={handleProfileChange} 
+                                                    className="w-full bg-white border border-gray-200 rounded-xl py-3 px-4 text-sm focus:ring-2 focus:ring-cyan-100 outline-none transition-all text-gray-700"
+                                                >
+                                                    <option value="" disabled>Selecciona tu región...</option>
+                                                    {REGIONES_CHILE.map(region => (
+                                                        <option key={region} value={region}>{region}</option>
+                                                    ))}
+                                                </select>
                                             </div>
+
                                             <button type="submit" disabled={savingProfile} className="w-full bg-cyan-600 text-white font-bold py-4 rounded-2xl flex items-center justify-center gap-3 hover:bg-cyan-700 transition-all shadow-lg shadow-cyan-100 disabled:opacity-50" >
                                                 {savingProfile ? <Loader2 className="animate-spin" size={20} /> : <Save size={20} />}
                                                 {savingProfile ? 'Guardando...' : 'Actualizar mis Datos'}
