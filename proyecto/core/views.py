@@ -169,7 +169,8 @@ def payment_confirm(request):
                             order.status = Order.StatusChoices.PAID
                             order.save()
                             
-                            items_html = "" # <--- Aquí guardaremos la lista de productos para el correo
+                            items_html = ""
+                            subtotal_productos = 0
                             
                             for item in order.items.all():
                                 product = item.product
@@ -179,9 +180,15 @@ def payment_confirm(request):
                                     product.stock = 0
                                 product.save()
                                 
-                                # Generamos la lista de productos en HTML para el correo
+                                # Calculamos el subtotal de este item y lo sumamos al total de productos
                                 subtotal_item = int(item.unit_price * item.quantity)
+                                subtotal_productos += subtotal_item
                                 items_html += f'<li style="margin-bottom: 8px; color: #374151; font-size: 14px;"><strong>{item.quantity}x</strong> {product.name} <span style="color: #db2777; font-weight: bold; float: right;">${subtotal_item}</span></li>'
+                            
+                            # Calculamos el costo de envío (Total - Subtotal productos)
+                            costo_envio = int(order.total_amount) - subtotal_productos
+                            if costo_envio < 0:
+                                costo_envio = 0
                             
                             # =========================================================
                             # LÓGICA DE ENVÍO DE CORREO AL CLIENTE
@@ -189,7 +196,6 @@ def payment_confirm(request):
                             try:
                                 subject = f"¡Tu pedido {order_id_str} está confirmado! - Policrómica"
                                 
-                                # Diseño HTML súper bonito con los colores de tu tienda
                                 html_message = f"""
                                 <html>
                                 <body style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; margin: 0; padding: 20px; background-color: #f9fafb;">
@@ -199,7 +205,7 @@ def payment_confirm(request):
                                         </div>
                                         <div style="padding: 30px;">
                                             <p style="font-size: 16px;">Hola <strong>{order.user.first_name or 'Cliente'}</strong>,</p>
-                                            <p style="font-size: 16px;">Hemos recibido tu pago correctamente. Tu pedido ya está en cola para ser preparado con mucho cariño.</p>
+                                            <p style="font-size: 16px;">Hemos recibido tu pago correctamente. Tu pedido ya está en cola para ser preparado.</p>
                                             
                                             <div style="background-color: #feecd4; padding: 20px; border-radius: 12px; margin: 25px 0; border: 1px solid #fbbf24;">
                                                 <h2 style="margin-top: 0; color: #9d174d; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">Resumen de tu pedido</h2>
@@ -219,10 +225,14 @@ def payment_confirm(request):
                                                 
                                                 <hr style="border: 0; border-top: 1px dashed #f59e0b; margin: 20px 0;">
                                                 
-                                                <p style="font-size: 20px; text-align: right; margin: 0; color: #be185d;"><strong>Total Pagado: <span style="font-size: 24px;">${int(order.total_amount)}</span></strong></p>
+                                                <div style="text-align: right; font-size: 14px; color: #4b5563;">
+                                                    <p style="margin: 5px 0;">Subtotal Productos: ${subtotal_productos}</p>
+                                                    <p style="margin: 5px 0;">Envío: ${costo_envio}</p>
+                                                    <p style="font-size: 20px; margin: 10px 0 0 0; color: #be185d;"><strong>Total Pagado: <span style="font-size: 24px;">${int(order.total_amount)}</span></strong></p>
+                                                </div>
                                             </div>
                                             
-                                            <p style="font-size: 14px; color: #6b7280;">Te enviaremos una notificación al número o correo de contacto cuando tu paquete vaya en camino.</p>
+                                            <p style="font-size: 14px; color: #6b7280;">Te enviaremos una notificación cuando tu paquete vaya en camino.</p>
                                             <p style="font-size: 16px; margin-bottom: 0;">Un abrazo,<br><strong style="color: #db2777;">El equipo de Policrómica</strong></p>
                                         </div>
                                     </div>
@@ -230,7 +240,6 @@ def payment_confirm(request):
                                 </html>
                                 """
                                 
-                                # Versión texto plano por si el correo del cliente no soporta HTML
                                 plain_message = f"Hola {order.user.first_name},\n\nTu pedido {order_id_str} ha sido confirmado. Total pagado: ${int(order.total_amount)}.\n\nGuarda tu código para rastrearlo en la página.\n\nGracias por comprar en Policrómica."
                                 
                                 send_mail(
@@ -239,17 +248,20 @@ def payment_confirm(request):
                                     from_email=settings.DEFAULT_FROM_EMAIL,
                                     recipient_list=[order.user.email],
                                     html_message=html_message,
-                                    fail_silently=True # Si falla, la app no explota
+                                    fail_silently=False # Lo ponemos en False un momento solo para ver si hay un error real en los logs de Render
                                 )
-                            except Exception as e:
-                                print(f"Error al enviar el correo: {e}")
+                                print(f"Correo enviado exitosamente a {order.user.email}")
+                            except Exception as email_error:
+                                print("=========================================")
+                                print(f"ERROR AL ENVIAR CORREO: {email_error}")
+                                print("=========================================")
                                     
                     except Order.DoesNotExist:
+                        print(f"La orden {order_id} no existe en la base de datos.")
                         pass
                         
             return JsonResponse({'status': 'ok'}, status=200)
     return JsonResponse({'error': 'Método no permitido'}, status=400)
-
 
 @csrf_exempt
 def payment_final_redirect(request):

@@ -247,7 +247,8 @@ EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-# Usamos os.environ.get para que en el futuro lo puedas pasar a variables de entorno en Render
+
+# AHORA SÍ, 100% SEGURO (Sin contraseñas escritas en el código)
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', 'policromicadespacho@gmail.com')
-EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', 'difw yuvh wlun kdgj')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = 'Policrómica <policromicadespacho@gmail.com>'
