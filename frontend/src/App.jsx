@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Routes, Route } from 'react-router-dom';
+import { Loader2 } from 'lucide-react'; // <-- NUEVO: Importamos el icono de carga
 
 // IMPORTAMOS EL CEREBRO DEL CARRITO
 import { CartProvider } from './context/CartContext';
@@ -27,6 +28,7 @@ import Favoritos from './components/Favoritos';
 
 function App() {
   const [products, setProducts] = useState([]);
+  const [isLoading, setIsLoading] = useState(true); // <-- NUEVO: Estado de carga
 
   const BASE_URL = import.meta.env.MODE === 'production'
     ? 'https://tienda-backend-fn64.onrender.com'
@@ -38,7 +40,6 @@ function App() {
         const response = await axios.get(`${BASE_URL}/api/products/`);
         const formattedData = response.data.map(item => ({
           ...item,
-          //price: new Intl.NumberFormat('es-CL', { style: 'currency', currency: 'CLP' }).format(item.price),
           price: parseFloat(item.price),
           image: item.main_image
             ? (item.main_image.startsWith('http') ? item.main_image : `${BASE_URL}${item.main_image}`)
@@ -50,6 +51,9 @@ function App() {
         setProducts(formattedData);
       } catch (error) {
         console.error("Error conectando con Django:", error);
+      } finally {
+        // <-- NUEVO: Sin importar si hay éxito o error, apagamos la carga al final
+        setIsLoading(false); 
       }
     };
     fetchProducts();
@@ -70,80 +74,57 @@ function App() {
       <CartProvider>
         <div className="min-h-screen bg-[#b3f3f5] flex flex-col w-full overflow-x-hidden">
           <Header products={products} />
-          <CartDrawer /> {/* <-- NUEVO: Agregamos el cajón del carrito aquí */}
+          <CartDrawer /> 
 
-          <Routes>
-            <Route path="/" element={
-              <>
-                <HeroCarousel slides={heroSlides} />
-                <FullWidthCarousel title="Novedades de la Semana" products={newArrivals} />
-                <main className="pb-10 flex-grow">
-                  <CategorySection
-                    title="Nuestros Aritos"
-                    buttonText="Ver Aritos"
-                    bannerImage={arosBanner}
-                    products={arosProducts}
-                    isReversed={false}
-                  />
-                  <div className="w-full h-px bg-cyan-900/10 max-w-7xl mx-auto my-8"></div>
-                  <CategorySection
-                    title="Cortadores Exclusivos"
-                    buttonText="Ver Todos"
-                    bannerImage={cortadoresBanner}
-                    products={cortadoresProducts}
-                    isReversed={true}
-                  />
-                </main>
-                <InstagramFeed />
-              </>
-            } />
+          {/* <-- NUEVO: Condición para mostrar la pantalla de carga o la tienda --> */}
+          {isLoading ? (
+            <div className="flex-grow flex flex-col items-center justify-center py-32">
+              <Loader2 className="animate-spin text-pink-500 mb-6" size={56} />
+              <h2 className="text-xl md:text-2xl font-bold text-gray-800 uppercase tracking-widest mb-3">
+                Preparando la Tienda
+              </h2>
+              <p className="text-gray-500 text-sm text-center max-w-xs animate-pulse">
+                Estamos organizando los productos para ti. Esto tomará solo unos segundos...
+              </p>
+            </div>
+          ) : (
+            <Routes>
+              <Route path="/" element={
+                <>
+                  <HeroCarousel slides={heroSlides} />
+                  <FullWidthCarousel title="Novedades de la Semana" products={newArrivals} />
+                  <main className="pb-10 flex-grow">
+                    <CategorySection
+                      title="Nuestros Aritos"
+                      buttonText="Ver Aritos"
+                      bannerImage={arosBanner}
+                      products={arosProducts}
+                      isReversed={false}
+                    />
+                    <div className="w-full h-px bg-cyan-900/10 max-w-7xl mx-auto my-8"></div>
+                    <CategorySection
+                      title="Cortadores Exclusivos"
+                      buttonText="Ver Todos"
+                      bannerImage={cortadoresBanner}
+                      products={cortadoresProducts}
+                      isReversed={true}
+                    />
+                  </main>
+                  <InstagramFeed />
+                </>
+              } />
 
-            <Route
-              path="/aros"
-              element={
-                <ProductPage
-                  title="Colección de Aros"
-                  products={arosProducts}
-                  bannerImage={arosBanner}
-                />
-              }
-            />
-
-            <Route
-              path="/cortadores"
-              element={
-                <ProductPage
-                  title="Cortadores"
-                  products={cortadoresProducts}
-                  bannerImage={cortadoresBanner}
-                />
-              }
-            />
-
-            <Route
-              path="/producto/:id"
-              element={<ProductDetail products={products} />}
-            />
-            <Route
-              path="/checkout"
-              element={<Checkout />}
-            />
-            <Route
-              path="/contacto"
-              element={<Contact />}
-            />
-            <Route
-              path="/perfil"
-              element={<User />}
-            />
-            <Route
-              path="/checkout/status"
-              element={<CheckoutStatus />}
-            />
-            <Route path="/envios" element={<Envios />} />
-            <Route path="/favoritos" element={<Favoritos />} />
-          </Routes>
-          
+              <Route path="/aros" element={ <ProductPage title="Colección de Aros" products={arosProducts} bannerImage={arosBanner} /> } />
+              <Route path="/cortadores" element={ <ProductPage title="Cortadores" products={cortadoresProducts} bannerImage={cortadoresBanner} /> } />
+              <Route path="/producto/:id" element={<ProductDetail products={products} />} />
+              <Route path="/checkout" element={<Checkout />} />
+              <Route path="/contacto" element={<Contact />} />
+              <Route path="/perfil" element={<User />} />
+              <Route path="/checkout/status" element={<CheckoutStatus />} />
+              <Route path="/envios" element={<Envios />} />
+              <Route path="/favoritos" element={<Favoritos />} />
+            </Routes>
+          )}
 
           <Footer />
         </div>
