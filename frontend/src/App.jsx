@@ -39,7 +39,7 @@ const funnyPhrases = [
 function App() {
   const [products, setProducts] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  
+
   const [showFancyLoading, setShowFancyLoading] = useState(false);
   const [loadingText, setLoadingText] = useState(funnyPhrases[0]);
   const [progress, setProgress] = useState(0);
@@ -49,15 +49,8 @@ function App() {
     : 'http://127.0.0.1:8000';
 
   useEffect(() => {
-    const lastVisit = localStorage.getItem('policromica_last_visit');
-    const now = Date.now();
-    const ONE_HOUR = 60 * 60 * 1000; 
-    
-    const isFancy = !lastVisit || (now - parseInt(lastVisit)) > ONE_HOUR;
-    setShowFancyLoading(isFancy);
-    localStorage.setItem('policromica_last_visit', now.toString());
-
     let textInterval;
+    let showFancyTimeout;
 
     const fetchProducts = async () => {
       try {
@@ -78,39 +71,49 @@ function App() {
       }
     };
 
-    if (isFancy) {
-      // 1. Iniciamos la barra para que suba al 85% lentamente (simulando que está cargando)
+    // 1. Iniciamos la petición a la base de datos
+    const fetchPromise = fetchProducts();
+    let isSlow = false;
+
+    // 2. Le damos un periodo de gracia (800ms). Si el servidor tarda más que esto (Render despertando), activamos la animación.
+    showFancyTimeout = setTimeout(() => {
+      isSlow = true;
+      setShowFancyLoading(true);
+
       setTimeout(() => setProgress(85), 50);
 
-      // 2. Cambiamos las frases cada 1.5 segundos
       let phraseIndex = 0;
       textInterval = setInterval(() => {
         phraseIndex = (phraseIndex + 1) % funnyPhrases.length;
         setLoadingText(funnyPhrases[phraseIndex]);
       }, 1500);
+    }, 800);
 
-      // 3. Cuando la base de datos responda (no importa cuánto tarde)
-      fetchProducts().then(() => {
+    // 3. Cuando la base de datos finalmente responde (ya sea en 100ms o en 7 segundos)
+    fetchPromise.then(() => {
+      clearTimeout(showFancyTimeout); // Cancelamos el temporizador si respondió rápido
+
+      if (isSlow) {
+        // Si se alcanzó a mostrar la animación, la cerramos con el mensaje final y esperamos medio segundo
         clearInterval(textInterval);
-        setLoadingText("¡Listo!"); // Mensaje final
-        setProgress(100); // Llenamos el 15% restante de golpe
-        
-        // Esperamos medio segundo para que el usuario alcance a ver la barra llena
+        setLoadingText("¡Listo!");
+        setProgress(100);
+
         setTimeout(() => {
           setIsLoading(false);
-        }, 500); 
-      });
-
-    } else {
-      // Carga rápida: sin barra ni frases si entró hace poco
-      fetchProducts().then(() => {
+        }, 500);
+      } else {
+        // Si respondió rapidísimo (caché activo o Render ya despierto), quitamos la pantalla de carga al instante
         setIsLoading(false);
-      });
-    }
+      }
+    });
 
     // Limpieza de seguridad
-    return () => clearInterval(textInterval);
-  }, []);
+    return () => {
+      clearInterval(textInterval);
+      clearTimeout(showFancyTimeout);
+    };
+  }, [])
 
   const arosProducts = products.filter(p => p.category__name === 'Aros');
   const cortadoresProducts = products.filter(p => p.category__name === 'Cortadores');
@@ -128,7 +131,7 @@ function App() {
       <CartProvider>
         <div className="min-h-screen bg-[#b3f3f5] flex flex-col w-full overflow-x-hidden">
           <Header products={products} />
-          <CartDrawer /> 
+          <CartDrawer />
 
           {isLoading ? (
             <div className="flex-grow flex flex-col items-center justify-center py-32 px-4 animate-in fade-in duration-500">
@@ -138,10 +141,10 @@ function App() {
                     {loadingText}
                   </h2>
                   <div className="w-full h-4 bg-cyan-100 rounded-full overflow-hidden shadow-inner p-0.5">
-                    <div 
+                    <div
                       className="h-full bg-pink-500 rounded-full relative overflow-hidden"
-                      style={{ 
-                        width: `${progress}%`, 
+                      style={{
+                        width: `${progress}%`,
                         // Truco CSS: Si llega a 100%, se llena rápido (0.4s). Si está en 85%, avanza muy lento (15s)
                         transition: `width ${progress === 100 ? '0.4s' : '15s'} cubic-bezier(0.1, 0.8, 0.3, 1)`
                       }}
@@ -188,8 +191,8 @@ function App() {
                 </>
               } />
 
-              <Route path="/aros" element={ <ProductPage title="Colección de Aros" products={arosProducts} bannerImage={arosBanner} /> } />
-              <Route path="/cortadores" element={ <ProductPage title="Cortadores" products={cortadoresProducts} bannerImage={cortadoresBanner} /> } />
+              <Route path="/aros" element={<ProductPage title="Colección de Aros" products={arosProducts} bannerImage={arosBanner} />} />
+              <Route path="/cortadores" element={<ProductPage title="Cortadores" products={cortadoresProducts} bannerImage={cortadoresBanner} />} />
               <Route path="/producto/:id" element={<ProductDetail products={products} />} />
               <Route path="/checkout" element={<Checkout />} />
               <Route path="/contacto" element={<Contact />} />
@@ -197,7 +200,7 @@ function App() {
               <Route path="/checkout/status" element={<CheckoutStatus />} />
               <Route path="/envios" element={<Envios />} />
               <Route path="/favoritos" element={<Favoritos />} />
-              <Route path="/destacados" element={ <ProductPage title="Destacados de la Semana" products={destacadosProducts} bannerImage={logoImg} /> } />
+              <Route path="/destacados" element={<ProductPage title="Destacados de la Semana" products={destacadosProducts} bannerImage={logoImg} />} />
             </Routes>
           )}
 
